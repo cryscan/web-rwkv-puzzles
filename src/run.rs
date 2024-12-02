@@ -12,7 +12,7 @@ use web_rwkv::{
     runtime::{
         infer::{InferInput, InferInputBatch, InferOption},
         loader::{Loader, Reader},
-        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, Quant, State},
+        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, State},
         softmax::softmax_one,
         v6, Runtime, SimpleRuntime,
     },
@@ -64,7 +64,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn new<R: Reader>(model: R, quant: usize, quant_nf4: usize) -> Result<Self> {
+    pub async fn new<R: Reader>(model: R) -> Result<Self> {
         let instance = Instance::new(Default::default());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
@@ -77,13 +77,10 @@ impl Session {
             .build()
             .await?;
 
-        let quant = (0..quant)
-            .map(|layer| (layer, Quant::Int8))
-            .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
-            .collect();
-        let builder = ModelBuilder::new(&context, model).quant(quant);
-
-        let model = builder.build_v6().await?;
+        let model = ModelBuilder::new(&context, model)
+            .rescale(0)
+            .build_v6()
+            .await?;
         let hooks = make_hooks(&info)?;
         let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
         let state: Box<dyn State> = Box::new(bundle.state());
@@ -160,8 +157,8 @@ pub struct SessionExport(Session);
 #[wasm_bindgen(js_class = Session)]
 impl SessionExport {
     #[wasm_bindgen(constructor)]
-    pub async fn new(model: TensorReader, quant: usize, quant_nf4: usize) -> Result<Self, JsError> {
-        let session = Session::new(model, quant, quant_nf4).await.map_err(err)?;
+    pub async fn new(model: TensorReader) -> Result<Self, JsError> {
+        let session = Session::new(model).await.map_err(err)?;
         Ok(Self(session))
     }
 
@@ -172,6 +169,7 @@ impl SessionExport {
         state: &StateId,
     ) -> Result<(), JsError> {
         let data = self.0.run(tokens, state).await.map_err(err)?;
+        assert_eq!(data.len(), output.len());
         output.copy_from_slice(&data);
         Ok(())
     }

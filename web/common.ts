@@ -1,4 +1,4 @@
-importScripts("web_rwkv_realweb.js")
+importScripts("web_rwkv_puzzles.js")
 
 const { Session, NucleusSampler, SimpleSampler, StateId, Tensor, TensorReader } = wasm_bindgen;
 
@@ -56,7 +56,7 @@ async function initReader(blob: Blob) {
 }
 
 async function initTokenizer(url: string) {
-    await wasm_bindgen("web_rwkv_realweb_bg.wasm");
+    await wasm_bindgen("web_rwkv_puzzles_bg.wasm");
 
     var req = await fetch(url);
     var vocab = await req.text();
@@ -65,14 +65,14 @@ async function initTokenizer(url: string) {
 }
 
 async function initSession(blob: Blob) {
-    await wasm_bindgen("web_rwkv_realweb_bg.wasm");
+    await wasm_bindgen("web_rwkv_puzzles_bg.wasm");
 
     // var req = await fetch("assets/models/RWKV-5-World-0.4B-v2-20231113-ctx4096.st");
     // var bin = await req.arrayBuffer();
     // console.log("model: ", bin.byteLength);
 
     let reader = await initReader(blob);
-    let session = await new Session(reader, 0, 0);
+    let session = await new Session(reader);
     console.log("runtime loaded")
     return session;
 }
@@ -85,7 +85,7 @@ async function* pipeline(
     stop_tokens: number[],
     max_len: number
 ) {
-    var probs = new Float32Array(65536);
+    var probs = new Float32Array(96);
 
     for (var i = 0; i < max_len; ++i) {
         await session.run(tokens, probs, state);

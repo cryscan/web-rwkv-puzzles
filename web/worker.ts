@@ -34,6 +34,8 @@ this.addEventListener("message", async function (e: MessageEvent<Uint8Array[] | 
     var response = "";
     var out = []
     console.log(`prompt length: ${tokens.length}`);
+    console.log(prompt);
+    console.log(tokens);
 
     await this.navigator.locks.request("model", async (lock) => {
         let p = pipeline(session, tokens, state, sampler, [59], 1000000);
