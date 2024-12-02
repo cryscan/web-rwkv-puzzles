@@ -88,13 +88,7 @@ ${board[12]}${board[13]}${board[14]}${board[15]}
 }
 
 const urls = new Map([
-    ["v4", "https://huggingface.co/cgisky/RWKV-safetensors-fp16/resolve/main/RWKV-4-World-0.4B-v1-20230529-ctx4096.st"],
-    ["v5", "https://huggingface.co/cgisky/AI00_RWKV_V5/resolve/main/RWKV-5-World-0.4B-v2-20231113-ctx4096.st"],
-    ["v5 1b5", "https://huggingface.co/cgisky/AI00_RWKV_V5/resolve/main/RWKV-5-World-1B5-v2-20231025-ctx4096.st"],
-    ["v6 1b6", "https://huggingface.co/cgisky/ai00_rwkv_x060/resolve/main/rwkv-x606-1b6-world-v2.st"],
-    ["v5 local", "http://localhost:5500/assets/models/RWKV-5-World-0.4B-v2-20231113-ctx4096.st"],
-    ["v6 local", "http://localhost:5500/assets/models/RWKV-x060-World-1B6-v2-20240208-ctx4096.st"],
-    ["puzzle 15", "https://github.com/cryscan/web-rwkv/raw/refs/heads/main/assets/models/rwkv-puzzle15.st"],
+    ["puzzle 15", "../assets/models/rwkv-puzzle15.st"],
     ["puzzle 15 local", "http://localhost:5500/assets/models/rwkv-puzzle15.st"],
 ]);
 
