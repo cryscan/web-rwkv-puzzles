@@ -90,6 +90,7 @@ ${board[12]}${board[13]}${board[14]}${board[15]}
 const urls = new Map([
     ["puzzle 15", "../assets/models/rwkv-puzzle15.st"],
     ["puzzle 15 local", "http://localhost:5500/assets/models/rwkv-puzzle15.st"],
+    ["puzzle 15 hf", "https://huggingface.co/cryscan/rwkv-puzzles/resolve/main/rwkv-puzzle15.st"],
 ]);
 
 function loadUrl(id: string, key: string) {
