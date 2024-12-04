@@ -3,8 +3,6 @@ async function load() {
     const downloadElem = document.getElementById("download")!;
     const progressElem = document.getElementById("progress") as HTMLProgressElement;
     const statusElem = document.getElementById("status")!;
-    const puzzleElem = document.getElementById("puzzle")!;
-    const boardElem = document.getElementById("board")!;
     const replyElem = document.getElementById("reply")!;
     var url = (document.getElementById("url") as HTMLInputElement).value;
 
@@ -40,24 +38,18 @@ async function load() {
     }
 
     downloadElem.style.display = "none";
-    puzzleElem.style.display = "";
 
     var worker = new Worker('web/worker.js');
+    ;(window as any).rwkv_worker = worker
+    console.log('✅ worker loaded')
     worker.onmessage = (e: MessageEvent<string | null>) => {
-        e.data ? replyElem.innerText += e.data : replyElem.innerText = "";
-    };
+        const { data } = e
+        ;(window as any).rwkv_addLogs(data)
+        ;(window as any).rwkv_boardChanged(data)
+    }
 
     worker.postMessage(chunks, chunks.map(x => x.buffer));
 
-    let board = randomize_puzzle_15();
-    boardElem.innerText = board;
-
-    puzzleElem.addEventListener("submit", (e) => {
-        e.preventDefault();
-        var input = new String(board);
-        worker.postMessage(input);
-        console.log("submit: " + input);
-    });
 }
 
 function randomize_puzzle_15() {
