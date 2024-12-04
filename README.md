@@ -52,3 +52,6 @@ Then, run the script:
 ## Run
 
 Start a local http server to serve the folder, open the page in your browser.
+
+> [!TIP]
+> You can use `./server/index.js` to start a local http server.
