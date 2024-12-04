@@ -9,6 +9,7 @@ Check the [live demo](https://cryscan.github.io/web-rwkv-puzzles/)!
 ### `node.js` and `typescript`
 
 To install `typescript`, use
+
 ```bash
 $ npm install -g typescript
 ```
@@ -16,6 +17,7 @@ $ npm install -g typescript
 ### `rust` and `wasm-pack`
 
 To install `wasm-pack`, use
+
 ```bash
 $ cargo install wasm-pack
 ```
@@ -28,8 +30,23 @@ and put it under `assets/models`.
 ## Compile and Pack
 
 To build and pack, run
+
 ```bash
 $ ./build.cmd
+```
+
+### macOS
+
+First, make the script executable:
+
+```bash
+chmod +x build.bash
+```
+
+Then, run the script:
+
+```bash
+./build.bash
 ```
 
 ## Run
