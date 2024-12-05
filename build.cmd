@@ -7,7 +7,6 @@
 @copy pkg\web_rwkv_puzzles.d.ts web\
 @copy pkg\web_rwkv_puzzles_bg.wasm web\
 @copy pkg\web_rwkv_puzzles_bg.wasm.d.ts web\
-@copy pkg\web_rwkv_puzzles_bg.bin web\
 
 @echo ==== build typescript ====
 @npx tsc

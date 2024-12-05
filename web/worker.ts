@@ -31,7 +31,6 @@ this.addEventListener("message", async function (e: MessageEvent<Uint8Array[] | 
     var decoder = new TextDecoder;
 
     var tokens = tokenizer.encode(encoder.encode(prompt));
-    var response = "";
     var out = []
     console.log(`prompt length: ${tokens.length}`);
     console.log(prompt);
@@ -45,8 +44,6 @@ this.addEventListener("message", async function (e: MessageEvent<Uint8Array[] | 
         for await (let token of p) {
             let word = decoder.decode(tokenizer.decode(new Uint16Array([token])));
             out.push(token);
-            response += word;
-
             this.postMessage({ word, token })
         }
     });
