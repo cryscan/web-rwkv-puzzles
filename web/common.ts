@@ -85,7 +85,8 @@ async function* pipeline(
     stop_tokens: number[],
     max_len: number
 ) {
-    var probs = new Float32Array(96);
+    var info = session.info();
+    var probs = new Float32Array(info.num_vocab);
 
     for (var i = 0; i < max_len; ++i) {
         await session.run(tokens, probs, state);

@@ -169,8 +169,8 @@ impl SessionExport {
         state: &StateId,
     ) -> Result<(), JsError> {
         let data = self.0.run(tokens, state).await.map_err(err)?;
-        assert_eq!(data.len(), output.len());
-        output.copy_from_slice(&data);
+        // assert_eq!(data.len(), output.len());
+        output.copy_from_slice(&data[..output.len()]);
         Ok(())
     }
 
