@@ -74,7 +74,7 @@ const Puzzle = () => {
   /**
    * @type {string[]}
    */
-  const [board, setBoard] = useState(randomize_puzzle_15())
+  const [board, setBoard] = useState(generate_solvable_puzzle())
   const recording = useRef(false)
   /**
    * @type {string[]}
@@ -103,7 +103,7 @@ const Puzzle = () => {
   }, [board])
 
   const onClickNewGame = () => {
-    setBoard(randomize_puzzle_15())
+    setBoard(generate_solvable_puzzle())
   }
 
   const onClickStart = () => {
@@ -273,10 +273,7 @@ const Row = ({ rowIndex, data }) => {
  * @returns
  */
 const Cell = ({ label, rowIndex, columnIndex }) => {
-
   const expectedLabel = rowIndex * 4 + columnIndex + 1
-  console.log({ label, rowIndex, columnIndex, expectedLabel })
-
   // const backgroundColor = label == expectedLabel ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 255, 0.33)'
 
   var backgroundColor = 'rgba(128, 200, 255, 1)'
@@ -303,27 +300,6 @@ const Cell = ({ label, rowIndex, columnIndex }) => {
       {label == 0 ? '' : label}
     </div>
   )
-}
-
-function randomize_puzzle_15() {
-  /* Randomize array in-place using Durstenfeld shuffle algorithm */
-  function shuffleArray(array) {
-    for (var i = array.length - 1; i >= 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1))
-      var temp = array[i]
-      array[i] = array[j]
-      array[j] = temp
-    }
-  }
-  // prettier-ignore
-  var board = [
-        "0  ", "1  ", "2  ", "3  ",
-        "4  ", "5  ", "6  ", "7  ",
-        "8  ", "9  ", "10 ", "11 ",
-        "12 ", "13 ", "14 ", "15 ",
-    ];
-  shuffleArray(board)
-  return board
 }
 
 /**
