@@ -47,7 +47,7 @@ this.addEventListener("message", async function (e: MessageEvent<Uint8Array[] | 
             out.push(token);
             response += word;
 
-            this.postMessage(word);
+            this.postMessage({ word, token })
         }
     });
 }, false);

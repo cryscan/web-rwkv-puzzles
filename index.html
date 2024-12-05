@@ -1,6 +1,17 @@
 <html>
 
 <head>
+  <style> 
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    }
+    #root * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    }
+  </style>
     <title>Web RWKV RealWeb</title>
     <h1>Web-RWKV In-Browser</h1>
     <div style="max-width:750px; margin-top:1rem;">
@@ -67,15 +78,17 @@
             <button type="submit">Submit</button>
         </form>
     </div>
-    <div style="max-width:750px; margin-top:1rem;">
-        <form id="puzzle" style="display: none;">
-            <div style="max-width:750px; margin-top:1rem;" id="board"></div>
-            <button type="submit">Run</button>
-        </form>
-    </div>
     <div style="max-width:750px; margin-top:1rem;" id="reply"></div>
     <script src="web/web_rwkv_puzzles.js"></script>
     <script src="web/app.js"></script>
+    <script src="web/puzzle_generator.js"></script>
+    <div id="root"></div>
+      <!-- React and ReactDOM via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel for JSX support -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" src="web/ui.js"></script>
 </head>
 
 </html>
