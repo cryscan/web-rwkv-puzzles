@@ -1,13 +1,13 @@
 .app {
   text-align: center;
   background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  height: 100vh;
 }
 
 .app * {
@@ -15,29 +15,19 @@
   margin: 0;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
 .grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
   aspect-ratio: 1;
-  background-color: red;
+  background-color: #6b2b2b;
 }
 
 .puzzle {
   flex: 1;
-  background-color: #9dca43;
+  background-color: #55692d;
   display: flex;
-  height: 100vh;
   flex-direction: column;
-  border-radius: 4px;
-  border: 2px solid #61dafb;
-  padding: 0;
   gap: 8px;
 }
 
@@ -57,28 +47,16 @@
 
 .info {
   flex: 1;
-  background-color: #305aaf;
+  background-color: #1d3a74;
   display: flex;
-  height: 100vh;
   flex-direction: column;
 }
 
 .logs {
+  background-color: #282c34;
+  padding: 8px;
   flex: 1;
   overflow-y: auto;
   font-family: monospace;
   font-size: 12px;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
