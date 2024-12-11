@@ -1,25 +1,114 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import logo from './logo.svg'
 import './App.css'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { P } from './state'
+import { assert } from 'console'
+
+const width = 750
+const height = 485
+const gridSize = width / 2
+const cellGap = 8
+const girdPadding = 16
+const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
 declare global {
   interface Window {
-    load: () => void
+    load: () => Promise<void>
     rwkv_worker: Worker
+    workerMessageReceived: (data: any) => void
   }
 }
 
 function App() {
-  const onClickStart = () => {
-    console.log('start')
-    const puzzle = generate_solvable_puzzle()
-    console.log({ puzzle })
-    const prompt = puzzle.join('')
-    console.log({ prompt })
-    window.rwkv_worker.postMessage(prompt)
+  const [board, setBoard] = useRecoilState(P.board)
+  const [moves, setMoves] = useRecoilState(P.moves)
+  const [displayState, setDisplayState] = useRecoilState(P.displayState)
+
+  const initializeApp = () => {
+    window.workerMessageReceived = (event: any) => {
+      const { word, token } = event
+
+      // <board>
+      const isBoardStart = token == 54
+      if (isBoardStart) {
+        P.recording = true
+        return
+      }
+
+      // </board>
+      const isBoardEnd = token == 55
+      if (isBoardEnd) {
+        P.recording = false
+        const boardContent = P.boardContentRef
+        setBoard(boardContent)
+        P.boardContentRef = []
+        setMoves(moves + 1)
+        return
+      }
+
+      const stop = token == 59
+      if (stop) {
+        setDisplayState('finished')
+        return
+      }
+
+      const tokenIsNotEnter = token != 82
+      if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
+    }
+
+    if (board.length == 0) setBoard(generate_solvable_puzzle())
   }
 
-  return <div className='App'></div>
+  useEffect(() => {
+    initializeApp()
+  }, [])
+
+  return (
+    <div className='app'>
+      <Puzzle />
+      <Info />
+    </div>
+  )
+}
+
+const Info = () => {
+  return (
+    <div className='info'>
+      <h1>Web-RWKV In-Browser</h1>
+      <div>
+        <p>Welcome to the Web-RWKV demo in browser!</p>
+        <p>
+          Check
+          <a href='https://github.com/cryscan/web-rwkv-realweb' target='_blank'>
+            the Github repo
+          </a>
+          for more details about this demo.
+        </p>
+        <p>
+          Note that this demo runs on WebGPU so make sure that your browser
+          support it before running (See{' '}
+          <a href='https://webgpureport.org/' target='_blank'>
+            WebGPU Report
+          </a>
+          ).
+        </p>
+        <p>
+          Thanks to{' '}
+          <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
+            josephrocca
+          </a>{' '}
+          for the first awesome in-browser implementation and the website (I am
+          totally unfamiliar with web dev LoL).
+        </p>
+      </div>
+      <Logs />
+    </div>
+  )
+}
+
+const Logs = () => {
+  return <div className='logs'></div>
 }
 
 function generate_solvable_puzzle(): string[] {
@@ -79,6 +168,211 @@ function generate_solvable_puzzle(): string[] {
   }
 
   return board.flat()
+}
+
+const Puzzle = () => {
+  const [board] = useRecoilState(P.board)
+
+  const recording = useRef(false)
+  const boardContentRef = useRef([])
+
+  const [moves, setMoves] = useRecoilState(P.moves)
+  const [time, setTime] = useRecoilState(P.time)
+  const [logs, setLogs] = useRecoilState(P.logs)
+  const [displayState, setDisplayState] = useRecoilState(P.displayState)
+
+  useEffect(() => {
+    if (displayState != 'running') return
+
+    const interval = setInterval(() => {
+      setTime((prevTime) => prevTime + 1)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [displayState])
+
+  useEffect(() => {
+    const list = board.map((item) => item.trim()).join(' ')
+    const finished = list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
+    if (finished) setDisplayState('finished')
+  }, [board])
+
+  return (
+    <div
+      style={{
+        padding: '4px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        border: '2px solid rgb(128, 200, 255)',
+        borderRadius: '4px',
+        height: `${height}px`,
+        alignItems: 'stretch',
+        marginLeft: '12px',
+        gap: '8px',
+      }}
+    >
+      <div
+        style={{ fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
+      >
+        15 Puzzle
+      </div>
+      <Grid />
+      <Controls />
+    </div>
+  )
+}
+
+const Grid = () => {
+  const [board] = useRecoilState(P.board)
+  if (board.length == 0) return null
+  return (
+    <div
+      style={{
+        height: `${width / 2}px`,
+        width: `${width / 2}px`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: `${cellGap}px`,
+        maxWidth: `${width / 2}px`,
+        padding: `0 ${girdPadding}px`,
+      }}
+    >
+      <Row rowIndex={0} data={board.slice(0, 4)} />
+      <Row rowIndex={1} data={board.slice(4, 8)} />
+      <Row rowIndex={2} data={board.slice(8, 12)} />
+      <Row rowIndex={3} data={board.slice(12, 16)} />
+    </div>
+  )
+}
+
+const Row = (options: { rowIndex: number; data: string[] }) => {
+  const { rowIndex, data } = options
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row', gap: `${cellGap}px` }}>
+      {Array.from({ length: 4 }).map(function (_, index) {
+        return (
+          <Cell
+            key={index}
+            label={data[index].trim()}
+            rowIndex={rowIndex}
+            columnIndex={index}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+const Controls = () => {
+  const [displayState, setDisplayState] = useRecoilState(P.displayState)
+  const [board, setBoard] = useRecoilState(P.board)
+  const [moves, setMoves] = useRecoilState(P.moves)
+  const [time, setTime] = useRecoilState(P.time)
+  const [logs, setLogs] = useRecoilState(P.logs)
+
+  const onClickNewGame = () => {
+    setBoard(generate_solvable_puzzle())
+  }
+
+  const onClickStart = async () => {
+    if (displayState == 'running') {
+      alert('Already running\n Please wait for the current run to finish.')
+      return
+    }
+
+    if (displayState == 'finished') {
+      alert('Puzzle already finished. Please start a new game.')
+      return
+    }
+
+    await window.load()
+
+    if (!window.rwkv_worker) {
+      alert('Please load the model first.')
+      return
+    }
+
+    const promptSource = board.join('')
+    setMoves(0)
+    setDisplayState('running')
+    setTime(0)
+    setLogs([])
+    window.rwkv_worker.postMessage(promptSource)
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: '8px',
+        padding: '0 8px',
+      }}
+    >
+      <button
+        style={{
+          flex: 1,
+          padding: '8px',
+        }}
+        onClick={onClickNewGame}
+        disabled={displayState == 'running'}
+      >
+        New Game
+      </button>
+      <button
+        style={{
+          flex: 1,
+          padding: '8px',
+        }}
+        onClick={onClickStart}
+        disabled={displayState == 'running'}
+      >
+        {displayState == 'running'
+          ? '🤔 Running...'
+          : displayState == 'finished'
+          ? '🎉 Finished'
+          : '🚀 Start'}
+      </button>
+    </div>
+  )
+}
+
+const Cell = (options: {
+  label: string
+  rowIndex: number
+  columnIndex: number
+}) => {
+  const { label, rowIndex, columnIndex } = options
+
+  const expectedLabel = rowIndex * 4 + columnIndex + 1
+  // const backgroundColor = label == expectedLabel ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 255, 0.33)'
+
+  var backgroundColor = 'rgba(128, 200, 255, 1)'
+  if (label == expectedLabel.toString())
+    backgroundColor = 'rgba(128, 255, 100, 1)'
+  if (label == '0') backgroundColor = 'rgba(0, 0, 0, 0)'
+
+  return (
+    <div
+      key={label}
+      style={{
+        width: `${cellSize}px`,
+        height: `${cellSize}px`,
+        backgroundColor: backgroundColor,
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        cursor: 'default',
+        userSelect: 'none',
+      }}
+    >
+      {label == '0' ? '' : label}
+    </div>
+  )
 }
 
 export default App
