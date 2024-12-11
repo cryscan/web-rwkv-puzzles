@@ -41,9 +41,11 @@ async function load() {
   console.log('✅ worker loaded')
   worker.onmessage = (e) => {
     const { data } = e
-    // window.rwkv_addLogs(data)
-    // window.rwkv_boardChanged(data)
-    console.log({ data })
+    try {
+      window.workerMessageReceived(data)
+    } catch (e) {
+      console.error(e)
+    }
   }
   worker.postMessage(
     chunks,
