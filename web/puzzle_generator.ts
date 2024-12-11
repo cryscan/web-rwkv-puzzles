@@ -1,4 +1,4 @@
-function generate_solvable_puzzle():string[] {
+function generate_solvable_puzzle(): string[] {
   // prettier-ignore
   const board = [
     ['0  ', '1  ', '2  ', '3  '],
@@ -45,7 +45,6 @@ function generate_solvable_puzzle():string[] {
       default:
         break
     }
-
 
     // Swap the zero with the number in the direction that can move
     if (canMove) {
