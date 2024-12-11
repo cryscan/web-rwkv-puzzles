@@ -23,39 +23,49 @@ declare global {
 function App() {
   const [board, setBoard] = useRecoilState(P.board)
   const [moves, setMoves] = useRecoilState(P.moves)
-  const [displayState, setDisplayState] = useRecoilState(P.displayState)
+  const [finished, setFinished] = useRecoilState(P.finished)
+  const [logs, setLogs] = useRecoilState(P.logs)
+
+  const onWorkerMessageReceived = (event: any) => {
+    if (!event) return
+
+    const { word, token } = event
+
+    // <board>
+    const isBoardStart = token == 54
+    if (isBoardStart) {
+      P.recording = true
+      return
+    }
+
+    // </board>
+    const isBoardEnd = token == 55
+    if (isBoardEnd) {
+      P.recording = false
+      const boardContent = P.boardContentRef
+      setBoard(boardContent)
+      P.boardContentRef = []
+      setMoves(function (prevMoves) {
+        console.log({ prevMoves })
+        return prevMoves + 1
+      })
+      return
+    }
+
+    const stop = token == 59
+    if (stop) {
+      setFinished(true)
+      return
+    }
+
+    const tokenIsNotEnter = token != 82
+    if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
+
+    setLogs((prev) => prev + word)
+  }
 
   const initializeApp = () => {
-    window.workerMessageReceived = (event: any) => {
-      const { word, token } = event
-
-      // <board>
-      const isBoardStart = token == 54
-      if (isBoardStart) {
-        P.recording = true
-        return
-      }
-
-      // </board>
-      const isBoardEnd = token == 55
-      if (isBoardEnd) {
-        P.recording = false
-        const boardContent = P.boardContentRef
-        setBoard(boardContent)
-        P.boardContentRef = []
-        setMoves(moves + 1)
-        return
-      }
-
-      const stop = token == 59
-      if (stop) {
-        setDisplayState('finished')
-        return
-      }
-
-      const tokenIsNotEnter = token != 82
-      if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
-    }
+    window.workerMessageReceived = onWorkerMessageReceived
 
     if (board.length == 0) setBoard(generate_solvable_puzzle())
   }
@@ -108,7 +118,8 @@ const Info = () => {
 }
 
 const Logs = () => {
-  return <div className='logs'></div>
+  const [logs] = useRecoilState(P.logs)
+  return <div className='logs'>{logs}</div>
 }
 
 function generate_solvable_puzzle(): string[] {
@@ -173,13 +184,11 @@ function generate_solvable_puzzle(): string[] {
 const Puzzle = () => {
   const [board] = useRecoilState(P.board)
 
-  const recording = useRef(false)
-  const boardContentRef = useRef([])
-
   const [moves, setMoves] = useRecoilState(P.moves)
   const [time, setTime] = useRecoilState(P.time)
   const [logs, setLogs] = useRecoilState(P.logs)
   const [displayState, setDisplayState] = useRecoilState(P.displayState)
+  const [finished, setFinished] = useRecoilState(P.finished)
 
   useEffect(() => {
     if (displayState != 'running') return
@@ -193,31 +202,27 @@ const Puzzle = () => {
 
   useEffect(() => {
     const list = board.map((item) => item.trim()).join(' ')
-    const finished = list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
-    if (finished) setDisplayState('finished')
+    const boardFinish = list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
+    if (boardFinish) setFinished(true)
   }, [board])
 
   return (
-    <div
-      style={{
-        padding: '4px 0',
-        display: 'flex',
-        flexDirection: 'column',
-        border: '2px solid rgb(128, 200, 255)',
-        borderRadius: '4px',
-        height: `${height}px`,
-        alignItems: 'stretch',
-        marginLeft: '12px',
-        gap: '8px',
-      }}
-    >
-      <div
-        style={{ fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
-      >
-        15 Puzzle
-      </div>
+    <div className='puzzle'>
+      <div className='puzzle_title'>15 Puzzle</div>
+      <RunningInfo />
       <Grid />
       <Controls />
+    </div>
+  )
+}
+
+const RunningInfo = () => {
+  const [moves] = useRecoilState(P.moves)
+  const [time] = useRecoilState(P.time)
+  return (
+    <div className='running_info'>
+      <div>Moves: {moves}</div>
+      <div>Time: {time}s</div>
     </div>
   )
 }
@@ -227,15 +232,16 @@ const Grid = () => {
   if (board.length == 0) return null
   return (
     <div
-      style={{
-        height: `${width / 2}px`,
-        width: `${width / 2}px`,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: `${cellGap}px`,
-        maxWidth: `${width / 2}px`,
-        padding: `0 ${girdPadding}px`,
-      }}
+      className='grid'
+      style={
+        {
+          // height: `${width / 2}px`,
+          // width: `${width / 2}px`,
+          // gap: `${cellGap}px`,
+          // maxWidth: `${width / 2}px`,
+          // padding: `0 ${girdPadding}px`,
+        }
+      }
     >
       <Row rowIndex={0} data={board.slice(0, 4)} />
       <Row rowIndex={1} data={board.slice(4, 8)} />
@@ -269,8 +275,13 @@ const Controls = () => {
   const [moves, setMoves] = useRecoilState(P.moves)
   const [time, setTime] = useRecoilState(P.time)
   const [logs, setLogs] = useRecoilState(P.logs)
+  const [finished, setFinished] = useRecoilState(P.finished)
 
   const onClickNewGame = () => {
+    setMoves(0)
+    setTime(0)
+    setLogs('')
+    setDisplayState('none')
     setBoard(generate_solvable_puzzle())
   }
 
@@ -280,7 +291,7 @@ const Controls = () => {
       return
     }
 
-    if (displayState == 'finished') {
+    if (finished) {
       alert('Puzzle already finished. Please start a new game.')
       return
     }
@@ -296,7 +307,7 @@ const Controls = () => {
     setMoves(0)
     setDisplayState('running')
     setTime(0)
-    setLogs([])
+    setLogs('')
     window.rwkv_worker.postMessage(promptSource)
   }
 
@@ -330,7 +341,7 @@ const Controls = () => {
       >
         {displayState == 'running'
           ? '🤔 Running...'
-          : displayState == 'finished'
+          : finished
           ? '🎉 Finished'
           : '🚀 Start'}
       </button>
