@@ -1,12 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react'
-import logo from './logo.svg'
+import { useEffect } from 'react'
 import './App.css'
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState } from 'recoil'
 import { P } from './state'
-import { assert } from 'console'
 
 const width = 750
-const height = 485
 const gridSize = width / 2
 const cellGap = 8
 const girdPadding = 16
@@ -22,9 +19,9 @@ declare global {
 
 function App() {
   const [board, setBoard] = useRecoilState(P.board)
-  const [moves, setMoves] = useRecoilState(P.moves)
-  const [finished, setFinished] = useRecoilState(P.finished)
-  const [logs, setLogs] = useRecoilState(P.logs)
+  const [, setMoves] = useRecoilState(P.moves)
+  const [, setFinished] = useRecoilState(P.finished)
+  const [, setLogs] = useRecoilState(P.logs)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -45,10 +42,7 @@ function App() {
       const boardContent = P.boardContentRef
       setBoard(boardContent)
       P.boardContentRef = []
-      setMoves(function (prevMoves) {
-        console.log({ prevMoves })
-        return prevMoves + 1
-      })
+      setMoves((prevMoves) => prevMoves + 1)
       return
     }
 
@@ -61,7 +55,14 @@ function App() {
     const tokenIsNotEnter = token != 82
     if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
 
-    setLogs((prev) => prev + word)
+    // console.log({ word })
+
+    if (word == '\n') {
+      setLogs((prev) => [...prev, P.logTemp])
+      P.logTemp = ''
+    } else {
+      P.logTemp += word
+    }
   }
 
   const initializeApp = () => {
@@ -76,8 +77,8 @@ function App() {
 
   return (
     <div className='app'>
-      <Puzzle />
       <Info />
+      <Puzzle />
     </div>
   )
 }
@@ -119,7 +120,16 @@ const Info = () => {
 
 const Logs = () => {
   const [logs] = useRecoilState(P.logs)
-  return <div className='logs'>{logs}</div>
+
+  return (
+    <div className='logs'>
+      {logs.map((log, index) => (
+        <div key={index} className='log-item'>
+          {log}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function generate_solvable_puzzle(): string[] {
@@ -231,18 +241,7 @@ const Grid = () => {
   const [board] = useRecoilState(P.board)
   if (board.length == 0) return null
   return (
-    <div
-      className='grid'
-      style={
-        {
-          // height: `${width / 2}px`,
-          // width: `${width / 2}px`,
-          // gap: `${cellGap}px`,
-          // maxWidth: `${width / 2}px`,
-          // padding: `0 ${girdPadding}px`,
-        }
-      }
-    >
+    <div className='grid'>
       <Row rowIndex={0} data={board.slice(0, 4)} />
       <Row rowIndex={1} data={board.slice(4, 8)} />
       <Row rowIndex={2} data={board.slice(8, 12)} />
@@ -280,7 +279,7 @@ const Controls = () => {
   const onClickNewGame = () => {
     setMoves(0)
     setTime(0)
-    setLogs('')
+    setLogs([])
     setDisplayState('none')
     setBoard(generate_solvable_puzzle())
   }
@@ -307,7 +306,7 @@ const Controls = () => {
     setMoves(0)
     setDisplayState('running')
     setTime(0)
-    setLogs('')
+    setLogs([])
     window.rwkv_worker.postMessage(promptSource)
   }
 
@@ -357,7 +356,6 @@ const Cell = (options: {
   const { label, rowIndex, columnIndex } = options
 
   const expectedLabel = rowIndex * 4 + columnIndex + 1
-  // const backgroundColor = label == expectedLabel ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 255, 0.33)'
 
   var backgroundColor = 'rgba(128, 200, 255, 1)'
   if (label == expectedLabel.toString())

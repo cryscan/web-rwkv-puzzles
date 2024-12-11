@@ -15,9 +15,9 @@ const board = atom<string[]>({
   default: [],
 })
 
-const logs = atom<string>({
+const logs = atom<string[]>({
   key: 'logs',
-  default: '',
+  default: [],
 })
 
 const time = atom<number>({
@@ -37,6 +37,7 @@ const tokensCount = atom<number>({
 
 var boardContentRef: string[] = []
 var recording: boolean = false
+var logTemp: string = ''
 
 export const P = {
   board,
@@ -48,4 +49,5 @@ export const P = {
   boardContentRef,
   recording,
   finished,
+  logTemp,
 }
