@@ -22,6 +22,7 @@ function App() {
   const [, setMoves] = useRecoilState(P.moves)
   const finished = useRecoilValue(P.finished)
   const [, setLogs] = useRecoilState(P.logs)
+  const [displayState, setDisplayState] = useRecoilState(P.displayState)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -48,13 +49,12 @@ function App() {
 
     const stop = token == 59
     if (stop) {
+      setDisplayState('none')
       return
     }
 
     const tokenIsNotEnter = token != 82
     if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
-
-    // console.log({ word })
 
     if (word == '\n') {
       setLogs((prev) => [...prev, P.logTemp])
@@ -77,6 +77,7 @@ function App() {
   return (
     <div className='app'>
       <Info />
+      <div className='separator'></div>
       <Puzzle />
     </div>
   )
@@ -199,6 +200,7 @@ function generate_solvable_puzzle(): string[] {
 const Puzzle = () => {
   const [, setTime] = useRecoilState(P.time)
   const [displayState] = useRecoilState(P.displayState)
+  const finished = useRecoilValue(P.finished)
 
   useEffect(() => {
     if (displayState != 'running') return
@@ -208,7 +210,7 @@ const Puzzle = () => {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [displayState])
+  }, [displayState, finished])
 
   return (
     <div className='puzzle'>
@@ -296,40 +298,30 @@ const Controls = () => {
       return
     }
 
-    const promptSource = board.join('')
+    let promptSource = ''
+    for (let i = 0; i < board.length; i++) {
+      promptSource += board[i]
+      if (i % 4 == 3) promptSource += '\n'
+    }
+
     setMoves(0)
     setDisplayState('running')
     setTime(0)
     setLogs([])
-    console.log({ promptSource })
     window.rwkv_worker.postMessage(promptSource)
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: '8px',
-        padding: '0 8px',
-      }}
-    >
+    <div className='controls'>
       <button
-        style={{
-          flex: 1,
-          padding: '8px',
-        }}
+        className='button'
         onClick={onClickNewGame}
         disabled={displayState == 'running'}
       >
         New Game
       </button>
       <button
-        style={{
-          flex: 1,
-          padding: '8px',
-        }}
+        className='button'
         onClick={onClickStart}
         disabled={displayState == 'running'}
       >

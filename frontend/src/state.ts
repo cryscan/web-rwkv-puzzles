@@ -9,8 +9,12 @@ const finished = selector({
   key: 'finished',
   get: ({ get }) => {
     const _board = get(board)
-    const list = _board.map((item) => item.trim()).join(' ')
-    return list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
+    const list = _board
+      .flat()
+      .map((item) => item.trim())
+      .join(' ')
+    const isFinished = list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
+    return isFinished
   },
 })
 

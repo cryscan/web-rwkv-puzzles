@@ -18,17 +18,16 @@
 .grid {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   flex: 1;
   gap: 8px;
-  aspect-ratio: 1;
-  background-color: #6b2b2b;
 }
 
 .puzzle {
   flex: 1;
-  background-color: #55692d;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -36,6 +35,7 @@
   display: flex;
   flex-direction: row;
   gap: 8px;
+  justify-content: center;
 }
 
 .cell {
@@ -58,6 +58,7 @@
 }
 
 .puzzle_title {
+  margin-top: 8px;
   font-size: 20px;
   font-weight: bold;
   text-align: center;
@@ -78,6 +79,12 @@
   text-align: center;
 }
 
+.separator {
+  width: 1px;
+  background-color: #ffffff33;
+  height: 100vh;
+}
+
 .logs {
   background-color: #282c34;
   flex: 1;
@@ -86,8 +93,25 @@
   font-size: 12px;
   align-items: stretch;
   white-space: pre-wrap;
+  border: 1px solid #ffffff33;
+  border-radius: 12px;
+  padding: 8px;
 }
 
 .log-item {
   text-align: left;
+}
+
+.controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.button {
+  padding: 8px;
+  flex: 1;
+  border-radius: 8px;
 }
