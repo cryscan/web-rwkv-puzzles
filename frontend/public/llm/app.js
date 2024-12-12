@@ -1,6 +1,6 @@
 'use strict'
 async function load() {
-  const url = 'http://localhost:3000/assets/models/rwkv-puzzle15.st'
+  const url = './assets/models/rwkv-puzzle15.st'
   let response = await fetch(url)
   if (
     (response.status >= 200 && response.status < 300) ||
