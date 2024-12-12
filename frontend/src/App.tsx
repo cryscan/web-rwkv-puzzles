@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import './App.css'
-import { useRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { P } from './state'
 
 const width = 750
@@ -20,7 +20,7 @@ declare global {
 function App() {
   const [board, setBoard] = useRecoilState(P.board)
   const [, setMoves] = useRecoilState(P.moves)
-  const [, setFinished] = useRecoilState(P.finished)
+  const finished = useRecoilValue(P.finished)
   const [, setLogs] = useRecoilState(P.logs)
 
   const onWorkerMessageReceived = (event: any) => {
@@ -48,7 +48,6 @@ function App() {
 
     const stop = token == 59
     if (stop) {
-      setFinished(true)
       return
     }
 
@@ -86,32 +85,30 @@ function App() {
 const Info = () => {
   return (
     <div className='info'>
-      <h1>Web-RWKV In-Browser</h1>
+      <div className='info-title'>Web-RWKV In-Browser</div>
+      <div>Welcome to the Web-RWKV demo in browser!</div>
       <div>
-        <p>Welcome to the Web-RWKV demo in browser!</p>
-        <p>
-          Check
-          <a href='https://github.com/cryscan/web-rwkv-realweb' target='_blank'>
-            the Github repo
-          </a>
-          for more details about this demo.
-        </p>
-        <p>
-          Note that this demo runs on WebGPU so make sure that your browser
-          support it before running (See{' '}
-          <a href='https://webgpureport.org/' target='_blank'>
-            WebGPU Report
-          </a>
-          ).
-        </p>
-        <p>
-          Thanks to{' '}
-          <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
-            josephrocca
-          </a>{' '}
-          for the first awesome in-browser implementation and the website (I am
-          totally unfamiliar with web dev LoL).
-        </p>
+        Check
+        <a href='https://github.com/cryscan/web-rwkv-realweb' target='_blank'>
+          the Github repo
+        </a>
+        for more details about this demo.
+      </div>
+      <div>
+        Note that this demo runs on WebGPU so make sure that your browser
+        support it before running (See{' '}
+        <a href='https://webgpureport.org/' target='_blank'>
+          WebGPU Report
+        </a>
+        ).
+      </div>
+      <div>
+        Thanks to{' '}
+        <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
+          josephrocca
+        </a>{' '}
+        for the first awesome in-browser implementation and the website (I am
+        totally unfamiliar with web dev LoL).
       </div>
       <Logs />
     </div>
@@ -120,9 +117,16 @@ const Info = () => {
 
 const Logs = () => {
   const [logs] = useRecoilState(P.logs)
+  const logsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (logsRef.current) {
+      logsRef.current.scrollTop = logsRef.current.scrollHeight
+    }
+  }, [logs])
 
   return (
-    <div className='logs'>
+    <div className='logs' ref={logsRef}>
       {logs.map((log, index) => (
         <div key={index} className='log-item'>
           {log}
@@ -133,15 +137,16 @@ const Logs = () => {
 }
 
 function generate_solvable_puzzle(): string[] {
-  // prettier-ignore
+  const kDebugMode = process.env.NODE_ENV == 'development'
+
   const board = [
-    ['0  ', '1  ', '2  ', '3  '],
-    ['4  ', '5  ', '6  ', '7  '],
-    ['8  ', '9  ', '10 ', '11 '],
-    ['12 ', '13 ', '14 ', '15 ']
+    ['1  ', '2  ', '3  ', '4  '],
+    ['5  ', '6  ', '7  ', '8  '],
+    ['9  ', '10 ', '11 ', '12 '],
+    ['13 ', '14 ', '15 ', '0  '],
   ]
-  const steps = 1000
-  let zero_index = [0, 0]
+  const steps = kDebugMode ? 5 : 1000
+  let zero_index = [3, 3]
 
   for (let i = 0; i < steps; i++) {
     const random_direction = Math.floor(Math.random() * 4)
@@ -192,13 +197,8 @@ function generate_solvable_puzzle(): string[] {
 }
 
 const Puzzle = () => {
-  const [board] = useRecoilState(P.board)
-
-  const [moves, setMoves] = useRecoilState(P.moves)
-  const [time, setTime] = useRecoilState(P.time)
-  const [logs, setLogs] = useRecoilState(P.logs)
-  const [displayState, setDisplayState] = useRecoilState(P.displayState)
-  const [finished, setFinished] = useRecoilState(P.finished)
+  const [, setTime] = useRecoilState(P.time)
+  const [displayState] = useRecoilState(P.displayState)
 
   useEffect(() => {
     if (displayState != 'running') return
@@ -209,12 +209,6 @@ const Puzzle = () => {
 
     return () => clearInterval(interval)
   }, [displayState])
-
-  useEffect(() => {
-    const list = board.map((item) => item.trim()).join(' ')
-    const boardFinish = list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
-    if (boardFinish) setFinished(true)
-  }, [board])
 
   return (
     <div className='puzzle'>
@@ -253,7 +247,7 @@ const Grid = () => {
 const Row = (options: { rowIndex: number; data: string[] }) => {
   const { rowIndex, data } = options
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', gap: `${cellGap}px` }}>
+    <div className='row'>
       {Array.from({ length: 4 }).map(function (_, index) {
         return (
           <Cell
@@ -274,7 +268,7 @@ const Controls = () => {
   const [moves, setMoves] = useRecoilState(P.moves)
   const [time, setTime] = useRecoilState(P.time)
   const [logs, setLogs] = useRecoilState(P.logs)
-  const [finished, setFinished] = useRecoilState(P.finished)
+  const finished = useRecoilValue(P.finished)
 
   const onClickNewGame = () => {
     setMoves(0)
@@ -307,6 +301,7 @@ const Controls = () => {
     setDisplayState('running')
     setTime(0)
     setLogs([])
+    console.log({ promptSource })
     window.rwkv_worker.postMessage(promptSource)
   }
 
@@ -365,18 +360,11 @@ const Cell = (options: {
   return (
     <div
       key={label}
+      className='cell'
       style={{
         width: `${cellSize}px`,
         height: `${cellSize}px`,
         backgroundColor: backgroundColor,
-        borderRadius: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        cursor: 'default',
-        userSelect: 'none',
       }}
     >
       {label == '0' ? '' : label}
