@@ -1,13 +1,17 @@
-import { atom } from 'recoil'
+import { atom, selector } from 'recoil'
 
 const displayState = atom<'none' | 'loading' | 'loaded' | 'running'>({
   key: 'loadState',
   default: 'none',
 })
 
-const finished = atom<boolean>({
+const finished = selector({
   key: 'finished',
-  default: false,
+  get: ({ get }) => {
+    const _board = get(board)
+    const list = _board.map((item) => item.trim()).join(' ')
+    return list == '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0'
+  },
 })
 
 const board = atom<string[]>({
