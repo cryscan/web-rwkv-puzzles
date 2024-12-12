@@ -13,3 +13,10 @@ cp pkg/web_rwkv_puzzles_bg.wasm.d.ts web/
 # Build typescript
 echo "==== building typescript ===="
 npx tsc
+
+echo "==== copy js files ===="
+cp web/web_rwkv_puzzles_bg.wasm frontend/public/llm
+cp web/web_rwkv_puzzles.js frontend/public/llm
+cp web/app.js frontend/public/llm
+cp web/common.js frontend/public/llm
+cp web/worker.js frontend/public/llm
