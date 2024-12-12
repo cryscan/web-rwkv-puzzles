@@ -1,55 +1,61 @@
+interface Window {
+    load: () => Promise<void>
+    rwkv_worker: Worker
+    workerMessageReceived: (data: any) => void
+}
+
 async function load() {
-    const modelElem = document.getElementById("model")!;
-    const downloadElem = document.getElementById("download")!;
-    const progressElem = document.getElementById("progress") as HTMLProgressElement;
-    const statusElem = document.getElementById("status")!;
-    const replyElem = document.getElementById("reply")!;
-    var url = (document.getElementById("url") as HTMLInputElement).value;
-
-    let response = await fetch(url);
-
-    if ((response.status >= 200 && response.status < 300) || (response.status === 0 /* Loaded from local file */)) {
-        replyElem.innerText = "";
-        modelElem.style.display = "none";
-        downloadElem.style.display = "";
+    const url = './assets/models/rwkv-puzzle15.st'
+    let response = await fetch(url)
+    if (
+        (response.status >= 200 && response.status < 300) ||
+        response.status === 0 /* Loaded from local file */
+    ) {
+        console.log('✅ .st loaded')
     } else if (response.status === 404 && url.startsWith('http://localhost')) {
-        replyElem.innerText = "Model not found locally.";
-        return;
+        console.error('Model not found')
+        return
     } else {
-        replyElem.innerText = "Incorrect URL.";
-        return;
+        console.error('Incorrect URL')
+        return
     }
+    const reader = response.body!.getReader()
+    const contentLength = +response.headers.get('Content-Length')!
+    console.log({ contentLength })
+    let receivedLength = 0
+    let chunks = []
 
-    const reader = response.body!.getReader();
-    const contentLength = +response.headers!.get('Content-Length')!;
-
-    let receivedLength = 0;
-    let chunks = [];
     while (true) {
-        const { done, value } = await reader.read();
+        const { done, value } = await reader.read()
         if (done) {
-            break;
+            break
         }
-        chunks.push(value);
-        receivedLength += value.length;
-
-        progressElem.value = receivedLength / contentLength;
-        statusElem.innerHTML = `<p>${url}</p><p>${receivedLength * 1.0e-6} / ${contentLength * 1.0e-6} MB</p>`;
+        chunks.push(value)
+        receivedLength += value.length
+        // progressElem.value = receivedLength / contentLength
+        // statusElem.innerHTML = `<p>${url}</p><p>${receivedLength * 1.0e-6} / ${
+        //   contentLength * 1.0e-6
+        // } MB</p>`
     }
 
-    downloadElem.style.display = "none";
-
-    var worker = new Worker('web/worker.js');
-    ;(window as any).rwkv_worker = worker
+    //   downloadElem.style.display = 'none'
+    console.log('🔄 Loading worker')
+    var worker = new Worker('llm/worker.js')
+    console.log('✅ Worker loaded')
+    window.rwkv_worker = worker
     console.log('✅ worker loaded')
-    worker.onmessage = (e: MessageEvent<string | null>) => {
+    worker.onmessage = (e) => {
         const { data } = e
-        ;(window as any).rwkv_addLogs(data)
-        ;(window as any).rwkv_boardChanged(data)
+        try {
+            window.workerMessageReceived(data)
+        } catch (e) {
+            console.error(e)
+        }
     }
-
-    worker.postMessage(chunks, chunks.map(x => x.buffer));
-
+    worker.postMessage(
+        chunks,
+        chunks.map((x) => x.buffer)
+    )
 }
 
 function randomize_puzzle_15() {

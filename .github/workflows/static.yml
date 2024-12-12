@@ -26,7 +26,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      # url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,8 +35,12 @@ jobs:
         run: sudo apt-get update -yq --allow-releaseinfo-change
       - name: Install Node.js
         uses: actions/setup-node@v4.0.2
-      - name: Install Typescript
-        run: npm install -g typescript
+      - name: Install Tools
+        run: |
+          npm install --global yarn
+          npm install --global typescript
+      - name: Install Dependencies
+        run: yarn install
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -50,6 +54,7 @@ jobs:
           # RUSTFLAGS=--cfg=web_sys_unstable_apis wasm-pack build --release --target no-modules
           # npx tsc
           bash build.bash
+          CI=false npm --prefix frontend run build
       - name: Clean
         run: |
           rm -r src/
@@ -57,13 +62,18 @@ jobs:
           rm -r web/*.ts
           rm -r *.cmd
           rm -r *.bash
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy with gh-pages
+        run: |
+          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          CI=false npm --prefix frontend run deploy -- -u "github-actions-bot <support+actions@github.com>"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Setup Pages
+      #   uses: actions/configure-pages@v4
+      # - name: Upload artifact
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: 'frontend/build'
+      # - name: Deploy to GitHub Pages
+      #   id: deployment
+      #   uses: actions/deploy-pages@v4

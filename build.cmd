@@ -9,4 +9,11 @@
 @copy pkg\web_rwkv_puzzles_bg.wasm.d.ts web\
 
 @echo ==== build typescript ====
-@npx tsc
+@call npx tsc
+
+@echo ==== copy js files ====
+@copy web\web_rwkv_puzzles_bg.wasm frontend\public\llm
+@copy web\web_rwkv_puzzles.js frontend\public\llm
+@copy web\app.js frontend\public\llm
+@copy web\common.js frontend\public\llm
+@copy web\worker.js frontend\public\llm
