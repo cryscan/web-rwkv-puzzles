@@ -1,17 +1,19 @@
-# Web-RWKV-RealWeb
+# Web-RWKV Puzzles
 
-Run the RWKV model locally in browser on your GPU. This demo is built upon the [web-rwkv](https://github.com/cryscan/web-rwkv) inference engine.
+Run the RWKV model locally in browser on your GPU to solve a 15 puzzle.
+This demo is built upon the [web-rwkv](https://github.com/cryscan/web-rwkv) inference engine.
 
-Check the [live demo](https://cryscan.github.io/web-rwkv-puzzles/)!
+Check the [live demo](https://webrwkv.rwkvos.com/)!
 
 ## Dependencies
 
-### `node.js` and `typescript`
+### `node.js`, `yarn` and `typescript`
 
-To install `typescript`, use
+Install requirements:
 
 ```bash
-$ npm install -g typescript
+$ npm install --global yarn
+$ npm install --global typescript
 ```
 
 ### `rust` and `wasm-pack`
@@ -33,6 +35,7 @@ To build and pack, run
 
 ```bash
 $ ./build.cmd
+$ npm --prefix frontend run build
 ```
 
 ### macOS
@@ -40,18 +43,19 @@ $ ./build.cmd
 First, make the script executable:
 
 ```bash
-chmod +x build.bash
+$ chmod +x build.bash
 ```
 
 Then, run the script:
 
 ```bash
-./build.bash
+$ ./build.bash
+$ npm --prefix frontend run build
 ```
 
 ## Run
 
-Start a local http server to serve the folder, open the page in your browser.
-
-> [!TIP]
-> You can use `./server/index.js` to start a local http server.
+```bash
+$ cd frontend
+$ yarn start
+```
