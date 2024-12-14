@@ -50,7 +50,7 @@
 }
 
 .run_info {
-  font-size: 20px;
+  font-size: 16px;
   display: flex;
   flex-direction: row;
   gap: 8px;

@@ -87,10 +87,10 @@ const Info = () => {
   return (
     <div className='info'>
       <div className='info-title'>Web-RWKV In-Browser</div>
-      <div>Welcome to the Web-RWKV demo in browser!</div>
+      <div>Welcome to the Web-RWKV puzzle solver in browser!</div>
       <div>
         Check
-        <a href='https://github.com/cryscan/web-rwkv-realweb' target='_blank'>
+        <a href='https://github.com/cryscan/web-rwkv-puzzles' target='_blank'>
           the Github repo
         </a>
         for more details about this demo.
@@ -108,7 +108,11 @@ const Info = () => {
         <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
           josephrocca
         </a>{' '}
-        for the first awesome in-browser implementation and the website (I am
+        and{' '}
+        <a href='https://github.com/HaloWang' target='_blank'>
+          HaloWang
+        </a>{' '}
+        for the awesome in-browser implementation and the website (I am
         totally unfamiliar with web dev LoL).
       </div>
       <Logs />
