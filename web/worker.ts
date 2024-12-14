@@ -87,7 +87,6 @@ if ('function' === typeof importScripts) {
         }
     }
 
-    var _tokenizer = initTokenizer("../assets/puzzle15_vocab.json");
     var _session: undefined | Promise<wasm_bindgen.Session> = undefined;
 
     this.addEventListener("message", async function (e: MessageEvent<Uint8Array[] | String>) {
@@ -103,7 +102,7 @@ if ('function' === typeof importScripts) {
             return;
         }
 
-        var tokenizer = await _tokenizer;
+        var tokenizer = await initTokenizer("../assets/puzzle15_vocab.json");
         var session = await _session!;
         var info = session.info();
         var sampler = new SimpleSampler(info);
