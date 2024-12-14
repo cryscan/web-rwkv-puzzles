@@ -67,7 +67,7 @@ function App() {
   const initializeApp = () => {
     window.workerMessageReceived = onWorkerMessageReceived
 
-    if (board.length == 0) setBoard(generate_solvable_puzzle())
+    setBoard(generateSolvablePuzzle())
   }
 
   useEffect(() => {
@@ -137,14 +137,14 @@ const Logs = () => {
   )
 }
 
-function generate_solvable_puzzle(): string[] {
+function generateSolvablePuzzle(): number[] {
   const kDebugMode = process.env.NODE_ENV == 'development'
 
   const board = [
-    ['1  ', '2  ', '3  ', '4  '],
-    ['5  ', '6  ', '7  ', '8  '],
-    ['9  ', '10 ', '11 ', '12 '],
-    ['13 ', '14 ', '15 ', '0  '],
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+    [9, 10, 11, 12],
+    [13, 14, 15, 0],
   ]
   const steps = kDebugMode ? 5 : 1000
   let zero_index = [3, 3]
@@ -190,11 +190,27 @@ function generate_solvable_puzzle(): string[] {
     if (canMove) {
       const temp = board[zero_index[1]][zero_index[0]]
       board[current_zero_index[1]][current_zero_index[0]] = temp
-      board[zero_index[1]][zero_index[0]] = '0  '
+      board[zero_index[1]][zero_index[0]] = 0
     }
   }
 
   return board.flat()
+}
+
+function buildPrompt(board: number[]): string {
+  let map = [
+    "0  ", "1  ", "2  ", "3  ",
+    "4  ", "5  ", "6  ", "7  ",
+    "8  ", "9  ", "10 ", "11 ",
+    "12 ", "13 ", "14 ", "15 ",
+  ];
+
+  let prompt = ''
+  for (let i = 0; i < board.length; i++) {
+    prompt += map[board[i]]
+    if (i % 4 == 3) prompt += '\n'
+  }
+  return prompt;
 }
 
 const Puzzle = () => {
@@ -246,7 +262,7 @@ const Grid = () => {
   )
 }
 
-const Row = (options: { rowIndex: number; data: string[] }) => {
+const Row = (options: { rowIndex: number; data: number[] }) => {
   const { rowIndex, data } = options
   return (
     <div className='row'>
@@ -254,7 +270,7 @@ const Row = (options: { rowIndex: number; data: string[] }) => {
         return (
           <Cell
             key={index}
-            label={data[index].trim()}
+            label={data[index]}
             rowIndex={rowIndex}
             columnIndex={index}
           />
@@ -277,7 +293,7 @@ const Controls = () => {
     setTime(0)
     setLogs([])
     setDisplayState('none')
-    setBoard(generate_solvable_puzzle())
+    setBoard(generateSolvablePuzzle())
   }
 
   const onClickStart = async () => {
@@ -298,17 +314,11 @@ const Controls = () => {
       return
     }
 
-    let promptSource = ''
-    for (let i = 0; i < board.length; i++) {
-      promptSource += board[i]
-      if (i % 4 == 3) promptSource += '\n'
-    }
-
     setMoves(0)
     setDisplayState('running')
     setTime(0)
     setLogs([])
-    window.rwkv_worker.postMessage(promptSource)
+    window.rwkv_worker.postMessage(buildPrompt(board))
   }
 
   return (
@@ -328,15 +338,15 @@ const Controls = () => {
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-          ? '🎉 Finished'
-          : '🚀 Start'}
+            ? '🎉 Finished'
+            : '🚀 Start'}
       </button>
     </div>
   )
 }
 
 const Cell = (options: {
-  label: string
+  label: number
   rowIndex: number
   columnIndex: number
 }) => {
@@ -344,10 +354,9 @@ const Cell = (options: {
 
   const expectedLabel = rowIndex * 4 + columnIndex + 1
 
-  var backgroundColor = 'rgba(128, 200, 255, 1)'
-  if (label == expectedLabel.toString())
-    backgroundColor = 'rgba(128, 255, 100, 1)'
-  if (label == '0') backgroundColor = 'rgba(0, 0, 0, 0)'
+  var color = 'rgba(128, 200, 255, 1)'
+  if (label == expectedLabel) color = 'rgba(128, 255, 100, 1)'
+  if (label == 0) color = 'rgba(128, 0, 0, 0)'
 
   return (
     <div
@@ -356,10 +365,10 @@ const Cell = (options: {
       style={{
         width: `${cellSize}px`,
         height: `${cellSize}px`,
-        backgroundColor: backgroundColor,
+        backgroundColor: color,
       }}
     >
-      {label == '0' ? '' : label}
+      {label == 0 ? '' : label}
     </div>
   )
 }

@@ -112,6 +112,8 @@ if ('function' === typeof importScripts) {
         console.log(input);
 
         var prompt = `<input>\n<board>\n${input}</board>\n</input>\n`;
+        console.log(prompt);
+
         var state = new StateId;
 
         var encoder = new TextEncoder;
@@ -120,7 +122,6 @@ if ('function' === typeof importScripts) {
         var tokens = tokenizer.encode(encoder.encode(prompt));
         var out = []
         console.log(`prompt length: ${tokens.length}`);
-        console.log(prompt);
         console.log(tokens);
 
         await this.navigator.locks.request("model", async (lock) => {

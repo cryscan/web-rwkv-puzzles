@@ -17,3 +17,6 @@
 @copy web\app.js frontend\public\llm
 @copy web\common.js frontend\public\llm
 @copy web\worker.js frontend\public\llm
+
+@echo ==== build react ====
+npm --prefix frontend run build
