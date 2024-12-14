@@ -231,20 +231,20 @@ const Puzzle = () => {
   return (
     <div className='puzzle'>
       <div className='puzzle_title'>15 Puzzle</div>
-      <RunningInfo />
+      <RunInfo />
       <Grid />
       <Controls />
     </div>
   )
 }
 
-const RunningInfo = () => {
+const RunInfo = () => {
   const [moves] = useRecoilState(P.moves)
   const [time] = useRecoilState(P.time)
   return (
-    <div className='running_info'>
+    <div className='run_info'>
       <div>Moves: {moves}</div>
-      <div>Time: {time}s</div>
+      <div>Time: {time} s</div>
     </div>
   )
 }

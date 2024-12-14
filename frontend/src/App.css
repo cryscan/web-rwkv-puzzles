@@ -49,8 +49,8 @@
   user-select: none;
 }
 
-.running_info {
-  font-family: monospace;
+.run_info {
+  font-size: 20px;
   display: flex;
   flex-direction: row;
   gap: 8px;
