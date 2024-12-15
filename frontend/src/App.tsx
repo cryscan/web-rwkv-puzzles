@@ -358,9 +358,9 @@ const Cell = (options: {
 
   const expectedLabel = rowIndex * 4 + columnIndex + 1
 
-  var color = 'rgba(128, 200, 255, 1)'
-  if (label == expectedLabel) color = 'rgba(128, 255, 100, 1)'
-  if (label == 0) color = 'rgba(128, 0, 0, 0)'
+  var color = 'rgba(197, 211, 232, 1)'
+  if (label == expectedLabel) color = 'rgba(208, 232, 197, 1)'
+  if (label == 0) color = 'rgba(224, 195, 195, 0)'
 
   return (
     <div
