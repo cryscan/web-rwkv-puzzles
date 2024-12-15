@@ -90,28 +90,35 @@ const Info = () => {
       <div>Welcome to the Web-RWKV puzzle solver in browser!</div>
       <div>
         Check
+        {' '}
         <a href='https://github.com/cryscan/web-rwkv-puzzles' target='_blank'>
           the Github repo
         </a>
+        {' '}
         for more details about this demo.
       </div>
       <div>
         Note that this demo runs on WebGPU so make sure that your browser
-        support it before running (See{' '}
+        support it before running (See
+        {' '}
         <a href='https://webgpureport.org/' target='_blank'>
           WebGPU Report
         </a>
         ).
       </div>
       <div>
-        Thanks to{' '}
+        Thanks to
+        {' '}
         <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
           josephrocca
-        </a>{' '}
-        and{' '}
+        </a>
+        {' '}
+        and
+        {' '}
         <a href='https://github.com/HaloWang' target='_blank'>
           HaloWang
-        </a>{' '}
+        </a>
+        {' '}
         for the awesome in-browser implementation and the website (I am
         totally unfamiliar with web dev LoL).
       </div>
