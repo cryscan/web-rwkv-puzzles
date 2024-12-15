@@ -1,13 +1,24 @@
 .app {
   text-align: center;
-  background-color: #282c34;
+  background-color: #fff8deff;
   display: flex;
   flex-direction: row;
   align-items: stretch;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: black;
   height: 100vh;
+}
+
+a {
+  font-weight: bold;
+  color: #a6aebf;
+  text-decoration: none;
+}
+
+a:hover {
+  font-weight: bold;
+  color: #c5d3e8;
 }
 
 .app * {
@@ -86,7 +97,7 @@
 }
 
 .logs {
-  background-color: #282c34;
+  background-color: #fff8deff;
   flex: 1;
   overflow-y: auto;
   font-family: monospace;
