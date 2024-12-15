@@ -123,8 +123,8 @@ const Info = () => {
         <a href='https://github.com/HaloWang' target='_blank'>
           HaloWang
         </a>{' '}
-        for the awesome in-browser implementation and the website (I am
-        totally unfamiliar with web dev LoL).
+        for the awesome in-browser implementation and the website (I am totally
+        unfamiliar with web dev LoL).
       </div>
       <Logs />
     </div>
@@ -213,6 +213,7 @@ function generateSolvablePuzzle(): number[] {
 }
 
 function buildPrompt(board: number[]): string {
+  // prettier-ignore
   let map = [
     "0  ", "1  ", "2  ", "3  ",
     "4  ", "5  ", "6  ", "7  ",
@@ -225,7 +226,7 @@ function buildPrompt(board: number[]): string {
     prompt += map[board[i]]
     if (i % 4 == 3) prompt += '\n'
   }
-  return prompt;
+  return prompt
 }
 
 const Puzzle = () => {
@@ -247,8 +248,8 @@ const Puzzle = () => {
     <div className='puzzle'>
       <div className='puzzle_title'>15 Puzzle</div>
       <RunInfo />
-      <Grid />
       <Controls />
+      <Grid />
     </div>
   )
 }
@@ -353,8 +354,8 @@ const Controls = () => {
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-            ? '🎉 Finished'
-            : '🚀 Start'}
+          ? '🎉 Finished'
+          : '🚀 Start'}
       </button>
     </div>
   )
