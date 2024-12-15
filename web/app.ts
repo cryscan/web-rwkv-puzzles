@@ -6,7 +6,21 @@ interface Window {
 
 async function load() {
     const url = './assets/models/rwkv-puzzle15.st'
-    let response = await fetch(url)
+    // let response = await fetch(url)
+
+    var cache = await caches.open("rwkv");
+
+    let response = await cache.match(url).then(async (value) => {
+        if (value !== undefined) {
+            console.log("✅ Loaded cached model");
+            return value;
+        }
+        console.log("🔄 Loading uncached model");
+        let response = await fetch(url);
+        cache.put(url, response.clone());
+        return response;
+    });
+
     if (
         (response.status >= 200 && response.status < 300) ||
         response.status === 0 /* Loaded from local file */
