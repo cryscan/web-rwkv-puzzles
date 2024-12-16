@@ -58,7 +58,8 @@ if ('function' === typeof importScripts) {
     // console.log("model: ", bin.byteLength);
 
     let reader = await initReader(blob)
-    let session = await new Session(reader)
+    // parameters: (reader, quant, quant_nf4)
+    let session = await new Session(reader, 0, 0);
     console.log('runtime loaded')
     return session
   }

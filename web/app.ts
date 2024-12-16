@@ -5,7 +5,7 @@ interface Window {
 }
 
 async function load() {
-    const url = './assets/models/rwkv-puzzle15.st'
+    const url = './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st'
     // let response = await fetch(url)
 
     var cache = await caches.open("rwkv");

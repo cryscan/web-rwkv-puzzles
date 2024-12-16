@@ -21,5 +21,5 @@ cp web/app.js frontend/public/llm
 cp web/common.js frontend/public/llm
 cp web/worker.js frontend/public/llm
 
-@echo "==== build react ===="
+echo "==== build react ===="
 CI=false npm --prefix frontend run build

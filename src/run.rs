@@ -8,19 +8,18 @@ use half::f16;
 use wasm_bindgen::prelude::*;
 use web_rwkv::{
     context::{Context, ContextBuilder, InstanceExt},
-    num::Float,
     runtime::{
         infer::{InferInput, InferInputBatch, InferOption},
         loader::{Loader, Reader},
-        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, State},
+        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, ModelVersion, State, Quant},
         softmax::softmax_one,
-        v6, Runtime, SimpleRuntime,
+        v4, v5, v6, v7, Runtime, SimpleRuntime,
     },
-    tensor::{ops::TensorOp, TensorCpu},
+    tensor::TensorCpu,
     wgpu::{Instance, PowerPreference},
 };
 
-use crate::{loader::TensorReader, ops::TensorOpExt};
+use crate::loader::TensorReader;
 
 pub const TOKEN_CHUNK_SIZE: usize = 128;
 
@@ -36,24 +35,6 @@ impl StateId {
     }
 }
 
-/// We need to slightly modify the model structure using hooks.
-fn make_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
-    let mut hooks = v6::HookMap::new();
-
-    for layer in 0..info.num_layer {
-        // add a custom operation before time-mix for each layer
-        hooks.insert(
-            v6::Hook::PreAttTimeDecayActivate(layer),
-            Box::new(move |frame: v6::Frame<F>| {
-                let op = TensorOp::mul_exp(&frame.buffer.time_decay, &frame.buffer.att_k)?;
-                Ok(TensorOp::List(vec![op]))
-            }),
-        );
-    }
-
-    Ok(hooks)
-}
-
 pub struct Session {
     context: Context,
     info: ModelInfo,
@@ -64,7 +45,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn new<R: Reader>(model: R) -> Result<Self> {
+    pub async fn new<R: Reader>(model: R, quant: usize, quant_nf4: usize) -> Result<Self> {
         let instance = Instance::new(Default::default());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
@@ -77,14 +58,41 @@ impl Session {
             .build()
             .await?;
 
-        let model = ModelBuilder::new(&context, model)
-            .rescale(0)
-            .build_v6()
-            .await?;
-        let hooks = make_hooks(&info)?;
-        let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
-        let state: Box<dyn State> = Box::new(bundle.state());
-        let runtime: Box<dyn Runtime> = Box::new(SimpleRuntime::new(bundle));
+        let quant = (0..quant)
+            .map(|layer| (layer, Quant::Int8))
+            .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
+            .collect();
+        let builder = ModelBuilder::new(&context, model).quant(quant);
+        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match info.version {
+            ModelVersion::V4 => {
+                let model = builder.build_v4().await?;
+                let bundle = v4::Bundle::<f16>::new(model, 1);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            ModelVersion::V5 => {
+                let model = builder.build_v5().await?;
+                let bundle = v5::Bundle::<f16>::new(model, 1);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            ModelVersion::V6 => {
+                let model = builder.build_v6().await?;
+                let bundle = v6::Bundle::<f16>::new(model, 1);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            ModelVersion::V7 => {
+                let model = builder.build_v7().await?;
+                let bundle = v7::Bundle::<f16>::new(model, 1);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+        };
 
         Ok(Self {
             context,
@@ -157,8 +165,8 @@ pub struct SessionExport(Session);
 #[wasm_bindgen(js_class = Session)]
 impl SessionExport {
     #[wasm_bindgen(constructor)]
-    pub async fn new(model: TensorReader) -> Result<Self, JsError> {
-        let session = Session::new(model).await.map_err(err)?;
+    pub async fn new(model: TensorReader, quant: usize, quant_nf4: usize) -> Result<Self, JsError> {
+        let session = Session::new(model, quant, quant_nf4).await.map_err(err)?;
         Ok(Self(session))
     }
 
