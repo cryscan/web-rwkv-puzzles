@@ -100,12 +100,12 @@ if ('function' === typeof importScripts) {
       var tokenizer = await initTokenizer('../assets/rwkv_vocab_v20230424.json')
       var session = await _session!
       var info = session.info()
-      var sampler = new SimpleSampler(info)
+      var sampler = new NucleusSampler(info, 1.0, 0.5)
 
       var input = e.data
       console.log(input)
 
-      const prompt = `<input>\n<board>\n${input}</board>\n</input>\n`
+      const prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${input}\n\nAssistant:`
       console.log(prompt)
 
       var state = new StateId()
@@ -114,19 +114,20 @@ if ('function' === typeof importScripts) {
       var decoder = new TextDecoder()
 
       var tokens = tokenizer.encode(encoder.encode(prompt))
+      var response = ''
       var out = []
-      console.log(`prompt length: ${tokens.length}`)
-      console.log(tokens)
 
       await this.navigator.locks.request('model', async (lock) => {
-        let p = pipeline(session, tokens, state, sampler, [59], 1000000)
+        let p = pipeline(session, tokens, state, sampler, [], 500)
 
         this.postMessage(null)
 
         for await (let token of p) {
           let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
           out.push(token)
+          response += word
           this.postMessage({ word, token })
+          if (word.includes('\n\n')) break
         }
       })
     },
