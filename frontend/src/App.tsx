@@ -9,13 +9,7 @@ const cellGap = 8
 const girdPadding = 16
 const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
-declare global {
-  interface Window {
-    load: () => Promise<void>
-    rwkv_worker: Worker
-    workerMessageReceived: (data: any) => void
-  }
-}
+
 
 function App() {
   const [board, setBoard] = useRecoilState(P.board)

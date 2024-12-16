@@ -59,7 +59,7 @@ if ('function' === typeof importScripts) {
 
     let reader = await initReader(blob)
     // parameters: (reader, quant, quant_nf4)
-    let session = await new Session(reader, 0, 0);
+    let session = await new Session(reader, 0, 0)
     console.log('runtime loaded')
     return session
   }

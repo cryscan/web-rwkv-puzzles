@@ -4,12 +4,13 @@ import './index.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { RecoilRoot } from 'recoil'
+import Chat from './Chat'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <RecoilRoot>
     <React.StrictMode>
-      <App />
+      <Chat />
     </React.StrictMode>
   </RecoilRoot>
 )

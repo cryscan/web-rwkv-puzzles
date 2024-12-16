@@ -4,6 +4,7 @@
   "homepage": ".",
   "private": true,
   "dependencies": {
+    "@ant-design/x": "^1.0.2",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -11,6 +12,8 @@
     "@types/node": "^16.7.13",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
+    "antd": "^5.22.5",
+    "antd-style": "^3.7.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
