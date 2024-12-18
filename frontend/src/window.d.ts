@@ -1,10 +1,5 @@
 export declare global {
   interface Window {
-    /**
-     * load model, implement in web/app.ts
-     */
-    load: () => Promise<void>
-
     rwkv_worker: Worker
 
     workerMessageReceived: (data: any) => void

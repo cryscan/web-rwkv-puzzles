@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import './App.css'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { P } from './state'
+import { loadData } from './load'
+import { setupWorker } from './setup_worker'
 
 const width = 750
 const gridSize = width / 2
@@ -326,7 +328,8 @@ const Controls = () => {
       return
     }
 
-    await window.load()
+    const chunks = await loadData('./assets/models/rwkv-puzzle15.st')
+    await setupWorker(chunks)
 
     if (!window.rwkv_worker) {
       alert('Please load the model first.')
