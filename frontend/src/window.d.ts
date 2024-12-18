@@ -19,4 +19,8 @@ export declare global {
      */
     onSuccessBinding: (data: any) => void
   }
+
+  interface Navigator {
+    gpu: GPU
+  }
 }

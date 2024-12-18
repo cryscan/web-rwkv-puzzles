@@ -10,7 +10,7 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <RecoilRoot>
     <React.StrictMode>
-      <Chat />
+      <App />
     </React.StrictMode>
   </RecoilRoot>
 )

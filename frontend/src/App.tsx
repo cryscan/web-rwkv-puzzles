@@ -9,14 +9,14 @@ const cellGap = 8
 const girdPadding = 16
 const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
-
-
 function App() {
   const [board, setBoard] = useRecoilState(P.board)
   const [, setMoves] = useRecoilState(P.moves)
   const finished = useRecoilValue(P.finished)
   const [, setLogs] = useRecoilState(P.logs)
   const [displayState, setDisplayState] = useRecoilState(P.displayState)
+
+  const initializeRef = useRef(false)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -59,9 +59,18 @@ function App() {
   }
 
   const initializeApp = () => {
-    window.workerMessageReceived = onWorkerMessageReceived
+    if (initializeRef.current) return
+    initializeRef.current = true
 
+    window.workerMessageReceived = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
+
+    const gpu = navigator.gpu
+    if (!gpu) {
+      setTimeout(() => {
+        alert('WebGPU is not supported by this browser.')
+      }, 1000)
+    }
   }
 
   useEffect(() => {
