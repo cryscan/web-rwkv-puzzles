@@ -5,7 +5,8 @@ interface Window {
 }
 
 async function load() {
-  const url = './assets/models/RWKV-5-World-0.4B-v2-20231113-ctx4096.st'
+  // const url = './assets/models/RWKV-5-World-0.4B-v2-20231113-ctx4096.st'
+  const url = './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st'
   // let response = await fetch(url)
 
   var cache = await caches.open('rwkv')
