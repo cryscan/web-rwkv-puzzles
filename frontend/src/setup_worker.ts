@@ -6,15 +6,30 @@ export async function setupWorker(
   var worker = new Worker('llm/worker.js')
 
   console.log('✅ Worker loaded')
-  window.rwkv_worker = worker
 
-  worker.onmessage = (e) => {
-    const { data } = e
-    try {
-      window.workerMessageReceived(data)
-    } catch (e) {
-      console.error(e)
-    }
+  switch (task) {
+    case 'chat':
+      window.chat_worker = worker
+      worker.onmessage = (e) => {
+        const { data } = e
+        try {
+          window.onChatMessageReceived(data)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+      break
+    case 'puzzle':
+      window.puzzle_worker = worker
+      worker.onmessage = (e) => {
+        const { data } = e
+        try {
+          window.onPuzzleMessageReceived(data)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+      break
   }
 
   const options = {

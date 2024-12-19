@@ -64,7 +64,7 @@ function Puzzle() {
     if (initializeRef.current) return
     initializeRef.current = true
 
-    window.workerMessageReceived = onWorkerMessageReceived
+    window.onPuzzleMessageReceived = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
 
     const gpu = navigator.gpu
@@ -332,7 +332,7 @@ const Controls = () => {
     const chunks = await loadData(P.modelUrl)
     await setupWorker(chunks, 'puzzle')
 
-    if (!window.rwkv_worker) {
+    if (!window.puzzle_worker) {
       alert('Please load the model first.')
       return
     }
@@ -379,7 +379,7 @@ const invoke = (board: number[]) => {
     sampler: 'simple',
     task: 'puzzle',
   }
-  window.rwkv_worker.postMessage(JSON.stringify(options))
+  window.puzzle_worker.postMessage(JSON.stringify(options))
 }
 
 const Cell = (options: {

@@ -60,7 +60,7 @@ const Chat = () => {
   }
 
   const initializeApp = () => {
-    window.workerMessageReceived = onWorkerMessageReceived
+    window.onChatMessageReceived = onWorkerMessageReceived
   }
 
   useEffect(() => {
@@ -164,7 +164,7 @@ const invoke = (message: string) => {
     sampler: 'nucleus',
     task: 'chat',
   }
-  window.rwkv_worker.postMessage(JSON.stringify(options))
+  window.chat_worker.postMessage(JSON.stringify(options))
 }
 
 const Info = () => {

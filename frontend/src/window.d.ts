@@ -1,8 +1,10 @@
 export declare global {
   interface Window {
-    rwkv_worker: Worker
+    chat_worker: Worker
+    puzzle_worker: Worker
 
-    workerMessageReceived: (data: any) => void
+    onChatMessageReceived: (data: any) => void
+    onPuzzleMessageReceived: (data: any) => void
 
     /**
      * Update binding for Ant Design X
