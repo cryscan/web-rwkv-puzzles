@@ -1,9 +1,7 @@
-interface Window {
-  rwkv_worker: Worker
-  workerMessageReceived: (data: any) => void
-}
-
-export async function setupWorker(chunks: Uint8Array[]) {
+export async function setupWorker(
+  chunks: Uint8Array[],
+  task: 'puzzle' | 'chat'
+) {
   console.log('🔄 Loading worker')
   var worker = new Worker('llm/worker.js')
 
@@ -18,6 +16,14 @@ export async function setupWorker(chunks: Uint8Array[]) {
       console.error(e)
     }
   }
+
+  const options = {
+    task: 'set_sampler_is_puzzle',
+    is_puzzle_model: task === 'puzzle',
+  }
+
+  worker.postMessage(JSON.stringify(options))
+
   worker.postMessage(
     chunks,
     chunks.map((x) => x.buffer)

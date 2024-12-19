@@ -331,7 +331,7 @@ const Controls = () => {
     }
 
     const chunks = await loadData(P.modelUrl)
-    await setupWorker(chunks)
+    await setupWorker(chunks, 'puzzle')
 
     if (!window.rwkv_worker) {
       alert('Please load the model first.')
@@ -378,6 +378,7 @@ const invoke = (board: number[]) => {
     top_p: 0.5,
     vocab: '../assets/puzzle15_vocab.json',
     sampler: 'simple',
+    task: 'puzzle',
   }
   window.rwkv_worker.postMessage(JSON.stringify(options))
 }

@@ -162,6 +162,7 @@ const invoke = (message: string) => {
     top_p: 0.5,
     vocab: '../assets/rwkv_vocab_v20230424.json',
     sampler: 'nucleus',
+    task: 'chat',
   }
   window.rwkv_worker.postMessage(JSON.stringify(options))
 }
@@ -190,7 +191,7 @@ const Info = () => {
         setLoadedLength(loadedLength)
       }
     )
-    await setupWorker(chunks)
+    await setupWorker(chunks, 'chat')
     setLoading(false)
     setLoaded(true)
   }
