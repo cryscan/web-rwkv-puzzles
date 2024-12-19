@@ -32,7 +32,7 @@ const loadedProgress = atom({
 
 const modelUrl = atom({
   key: 'modelUrl',
-  default: './assets/models/RWKV-5-World-0.4B-v2-20231113-ctx4096.st',
+  default: './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
 })
 
 export const P = {

@@ -33,7 +33,7 @@ const menuItems: MenuItem[] = [
 
 const Root: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
-  const {} = theme.useToken()
+  const { } = theme.useToken()
   const navigate = useNavigate()
   const currentPath = window.location.pathname.substring(1)
 
@@ -63,8 +63,8 @@ const Root: React.FC = () => {
       <Layout>
         <Content style={{ margin: '0 16px', display: 'flex', flex: 1 }}>
           <Routes>
-            <Route path='/chat' element={<Chat />} />
-            <Route path='/15puzzle' element={<Puzzle />} />
+            <Route path='chat' element={<Chat />} />
+            <Route path='15puzzle' element={<Puzzle />} />
           </Routes>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
