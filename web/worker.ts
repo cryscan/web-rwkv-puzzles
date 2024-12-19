@@ -83,54 +83,63 @@ if ('function' === typeof importScripts) {
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
 
+  async function run(message: string, window: Window) {
+    const options = JSON.parse(message)
+
+    const max_len = options.max_len
+    const prompt = options.prompt
+    const stop_tokens = options.stop_tokens
+    const temperature = options.temperature
+    const top_p = options.top_p
+    const vocab = options.vocab
+
+    var tokenizer = await initTokenizer(vocab)
+    var session = await _session!
+    var info = session.info()
+    var sampler = new NucleusSampler(info, temperature, top_p)
+    var state = new StateId()
+    var encoder = new TextEncoder()
+    var decoder = new TextDecoder()
+
+    var tokens = tokenizer.encode(encoder.encode(prompt))
+    var response = ''
+    var out = []
+
+    await window.navigator.locks.request('model', async (lock) => {
+      let p = pipeline(session, tokens, state, sampler, stop_tokens, max_len)
+
+      window.postMessage(null)
+
+      for await (let token of p) {
+        let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
+        out.push(token)
+        response += word
+        window.postMessage({ word, token })
+        if (word.includes('\n\n')) break
+      }
+    })
+  }
+
   this.addEventListener(
     'message',
     async function (e: MessageEvent<Uint8Array[] | String>) {
+      // Load model
       if (e.data instanceof Array) {
         let blob = new Blob(e.data)
         _session = initSession(blob)
         return
       }
 
+      // Check if model is loaded
       if ((await _session) === undefined) {
         this.postMessage(null)
         this.postMessage('Error: Model is not loaded.')
         return
       }
 
-      var tokenizer = await initTokenizer('../assets/rwkv_vocab_v20230424.json')
-      var session = await _session!
-      var info = session.info()
-      var sampler = new NucleusSampler(info, 1.0, 0.5)
-
-      var input = e.data
-      console.log(input)
-
-      const prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${input}\n\nAssistant:`
-      console.log(prompt)
-
-      var state = new StateId()
-
-      var encoder = new TextEncoder()
-      var decoder = new TextDecoder()
-
-      var tokens = tokenizer.encode(encoder.encode(prompt))
-      var response = ''
-      var out = []
-
-      await this.navigator.locks.request('model', async (lock) => {
-        let p = pipeline(session, tokens, state, sampler, [], 500)
-
-        this.postMessage(null)
-
-        for await (let token of p) {
-          let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-          out.push(token)
-          response += word
-          this.postMessage({ word, token })
-          if (word.includes('\n\n')) break
-        }
-      })
+      if (typeof e.data === 'string') {
+        run(e.data, this)
+      }
     },
     false
   )
