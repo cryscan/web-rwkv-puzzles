@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
-import './App.css'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { P } from './state'
-import { loadData } from './load'
-import { setupWorker } from './setup_worker'
+import { P } from './state_puzzle'
+import { loadData } from '../func/load'
+import { setupWorker } from '../setup_worker'
+import './Puzzle.css'
 
 const width = 750
 const gridSize = width / 2
@@ -11,7 +11,7 @@ const cellGap = 8
 const girdPadding = 16
 const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
-function App() {
+function Puzzle() {
   const [board, setBoard] = useRecoilState(P.board)
   const [, setMoves] = useRecoilState(P.moves)
   const finished = useRecoilValue(P.finished)
@@ -83,7 +83,7 @@ function App() {
     <div className='app'>
       <Info />
       <div className='separator'></div>
-      <Puzzle />
+      <Blocks />
     </div>
   )
 }
@@ -234,7 +234,7 @@ function buildPrompt(board: number[]): string {
   return prompt
 }
 
-const Puzzle = () => {
+const Blocks = () => {
   const [, setTime] = useRecoilState(P.time)
   const [displayState] = useRecoilState(P.displayState)
   const finished = useRecoilValue(P.finished)
@@ -395,4 +395,4 @@ const Cell = (options: {
   )
 }
 
-export default App
+export default Puzzle

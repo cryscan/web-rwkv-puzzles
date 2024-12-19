@@ -12,9 +12,9 @@ import { Button, Flex, Progress, type GetProp } from 'antd'
 import React, { useEffect } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { loadData } from './load'
+import { loadData } from '../func/load'
 import { BulbOutlined } from '@ant-design/icons'
-import { setupWorker } from './setup_worker'
+import { setupWorker } from '../setup_worker'
 
 const items: PromptsProps['items'] = [
   {
@@ -90,10 +90,12 @@ const Chat = () => {
       vertical
       gap='middle'
       style={{
-        height: '100vh',
         padding: 12,
         boxSizing: 'border-box',
         overflow: 'scroll',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
       }}
     >
       {!hasMessages && <Info />}

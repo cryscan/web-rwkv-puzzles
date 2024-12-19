@@ -1,14 +1,14 @@
 import { atom, selector } from 'recoil'
 
 const displayState = atom<'none' | 'loading' | 'loaded' | 'running'>({
-  key: 'loadState',
+  key: 'displayState',
   default: 'none',
 })
 
 const finished = selector({
   key: 'finished',
   get: ({ get }) => {
-    const _board = get(board).map(x => Number(x))
+    const _board = get(board).map((x) => Number(x))
     const expected = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
     return _board.every((value, index) => value === expected[index])
   },
