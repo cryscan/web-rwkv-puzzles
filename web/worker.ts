@@ -58,7 +58,7 @@ if ('function' === typeof importScripts) {
     // console.log("model: ", bin.byteLength);
 
     let reader = await initReader(blob)
-    // parameters: (reader, quant, quant_nf4)
+    // @Molly 我们只需要更改这里吗?
     let session = await new Session(reader, 0, 0)
     console.log('runtime loaded')
     return session
@@ -83,7 +83,7 @@ if ('function' === typeof importScripts) {
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
 
-  async function run(message: string, window: Window) {
+  async function runChat(message: string, window: Window) {
     const options = JSON.parse(message)
 
     const max_len = options.max_len
@@ -92,17 +92,28 @@ if ('function' === typeof importScripts) {
     const temperature = options.temperature
     const top_p = options.top_p
     const vocab = options.vocab
+    const samplerName = options.sampler
 
-    var tokenizer = await initTokenizer(vocab)
-    var session = await _session!
-    var info = session.info()
-    var sampler = new NucleusSampler(info, temperature, top_p)
-    var state = new StateId()
-    var encoder = new TextEncoder()
-    var decoder = new TextDecoder()
+    const tokenizer = await initTokenizer(vocab)
+    const session = await _session!
+    const info = session.info()
+    const state = new StateId()
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
+
+    let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
+    switch (samplerName) {
+      case 'nucleus':
+        sampler = new NucleusSampler(info, temperature, top_p)
+        break
+      case 'simple':
+        sampler = new SimpleSampler(info)
+        break
+      default:
+        throw 'invalid sampler'
+    }
 
     var tokens = tokenizer.encode(encoder.encode(prompt))
-    var response = ''
     var out = []
 
     await window.navigator.locks.request('model', async (lock) => {
@@ -113,9 +124,54 @@ if ('function' === typeof importScripts) {
       for await (let token of p) {
         let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
         out.push(token)
-        response += word
         window.postMessage({ word, token })
-        if (word.includes('\n\n')) break
+      }
+    })
+  }
+
+  // @Molly 我单独写了一个这个函数以便比对两个调用的区别
+  // 可能需要较为频繁地运行 /build.bash 来更新 worker.ts
+  async function runPuzzle(message: string, window: Window) {
+    const options = JSON.parse(message)
+
+    const max_len = options.max_len
+    const promptRaw = options.prompt
+    const stop_tokens = options.stop_tokens
+    const temperature = options.temperature
+    const top_p = options.top_p
+    const vocab = options.vocab
+    const samplerName = options.sampler
+
+    var tokenizer = await initTokenizer(vocab)
+    var session = await _session!
+    var info = session.info()
+    var sampler = new SimpleSampler(info)
+
+    // var input = e.data
+    // console.log(input)
+
+    var prompt = `<input>\n<board>\n${promptRaw}</board>\n</input>\n`
+    console.log(prompt)
+
+    var state = new StateId()
+
+    var encoder = new TextEncoder()
+    var decoder = new TextDecoder()
+
+    var tokens = tokenizer.encode(encoder.encode(prompt))
+    var out = []
+    console.log(`prompt length: ${tokens.length}`)
+    console.log(tokens)
+
+    await window.navigator.locks.request('model', async (lock) => {
+      let p = pipeline(session, tokens, state, sampler, [59], 1000000)
+
+      window.postMessage(null)
+
+      for await (let token of p) {
+        let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
+        out.push(token)
+        window.postMessage({ word, token })
       }
     })
   }
@@ -138,7 +194,7 @@ if ('function' === typeof importScripts) {
       }
 
       if (typeof e.data === 'string') {
-        run(e.data, this)
+        runPuzzle(e.data, this)
       }
     },
     false

@@ -42,8 +42,10 @@ const tokensCount = atom<number>({
 var boardContentRef: number[] = []
 var recording: boolean = false
 var logTemp: string = ''
+var modelUrl = './assets/models/rwkv-puzzle15.st'
 
 export const P = {
+  modelUrl,
   board,
   displayState,
   logs,
