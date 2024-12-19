@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BlockOutlined, MessageOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { App, Layout, Menu, theme } from 'antd'
@@ -33,11 +33,15 @@ const menuItems: MenuItem[] = [
 
 const Root: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken()
-
+  const {} = theme.useToken()
   const navigate = useNavigate()
+  const currentPath = window.location.pathname.substring(1)
+
+  useEffect(() => {
+    if (currentPath === '') {
+      navigate('/chat')
+    }
+  }, [currentPath])
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -48,7 +52,7 @@ const Root: React.FC = () => {
       >
         <Menu
           theme='dark'
-          defaultSelectedKeys={['chat']}
+          defaultSelectedKeys={[currentPath || 'chat']}
           mode='inline'
           items={menuItems}
           onClick={(e) => {
