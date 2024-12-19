@@ -71,7 +71,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(message)
+      invoke(message, llmContent.current === '')
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -150,13 +150,15 @@ const Chat = () => {
   )
 }
 
-const invoke = (message: string) => {
+const invoke = (message: string, isInit: boolean) => {
+  let prompt: string
+  if (isInit) prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
+  else prompt = `User: ${message}\n\nAssistant:`
+  console.log(prompt)
+
   const options = {
     max_len: 500,
-    prompt: `User: Hi!
-\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.
-\nUser: ${message}
-\nAssistant:`,
+    prompt,
     stop_tokens: [261],
     temperature: 1.0,
     top_p: 0.5,

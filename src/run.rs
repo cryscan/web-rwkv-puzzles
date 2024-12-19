@@ -1,8 +1,3 @@
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-};
-
 use anyhow::Result;
 use half::f16;
 use wasm_bindgen::prelude::*;
@@ -12,29 +7,17 @@ use web_rwkv::{
     runtime::{
         infer::{InferInput, InferInputBatch, InferOption},
         loader::{Loader, Reader},
-        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, ModelVersion, State, Quant},
+        model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, ModelVersion, Quant, State},
         softmax::softmax_one,
         v4, v5, v6, v7, Runtime, SimpleRuntime,
     },
-    tensor::{TensorCpu, ops::TensorOp},
+    tensor::ops::TensorOp,
     wgpu::{Instance, PowerPreference},
 };
 
 use crate::{loader::TensorReader, ops::TensorOpExt};
 
 pub const TOKEN_CHUNK_SIZE: usize = 128;
-
-#[wasm_bindgen]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct StateId(uid::Id<StateId>);
-
-#[wasm_bindgen]
-impl StateId {
-    #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
-        Self(uid::Id::new())
-    }
-}
 
 /// We need to slightly modify the model structure using hooks.
 fn make_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
@@ -56,13 +39,16 @@ pub struct Session {
     context: Context,
     info: ModelInfo,
     runtime: Box<dyn Runtime>,
-    state: Box<dyn State>,
-    current: Cell<StateId>,
-    backed: RefCell<HashMap<StateId, TensorCpu<f32>>>,
+    _state: Box<dyn State>,
 }
 
 impl Session {
-    pub async fn new<R: Reader>(model: R, quant: usize, quant_nf4: usize, is_puzzle_model: bool) -> Result<Self> {
+    pub async fn new<R: Reader>(
+        model: R,
+        quant: usize,
+        quant_nf4: usize,
+        is_puzzle_model: bool,
+    ) -> Result<Self> {
         let instance = Instance::new(Default::default());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
@@ -80,7 +66,7 @@ impl Session {
             .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
             .collect();
         let builder = ModelBuilder::new(&context, model).quant(quant);
-        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match is_puzzle_model {
+        let (runtime, _state): (Box<dyn Runtime>, Box<dyn State>) = match is_puzzle_model {
             true => {
                 let hooks = make_hooks(&info)?;
                 let model = builder.build_v6().await?;
@@ -118,46 +104,18 @@ impl Session {
                     let runtime = SimpleRuntime::new(bundle);
                     (Box::new(runtime), Box::new(state))
                 }
-            }
+            },
         };
 
         Ok(Self {
             context,
             info,
             runtime,
-            state,
-            current: Cell::new(StateId::new()),
-            backed: RefCell::new(HashMap::new()),
+            _state,
         })
     }
 
-    async fn back(&self) -> Result<()> {
-        let id = self.current.get();
-        let backed = self.state.back(0).await?;
-        self.backed.borrow_mut().insert(id, backed);
-        Ok(())
-    }
-
-    async fn checkout(&self, id: StateId) -> Result<()> {
-        if self.current.get() == id {
-            return Ok(());
-        }
-
-        self.back().await?;
-        self.current.set(id);
-
-        let backed = self.backed.borrow();
-        match backed.get(&id) {
-            Some(backed) => self.state.load(backed.clone(), 0)?,
-            None => self.state.load(self.state.init(), 0)?,
-        }
-
-        Ok(())
-    }
-
-    pub async fn run(&self, tokens: &[u16], state: &StateId) -> Result<Vec<f32>> {
-        self.checkout(*state).await?;
-
+    pub async fn run(&self, tokens: &[u16]) -> Result<Vec<f32>> {
         let tokens = tokens.to_owned();
         let mut inference = Some(InferInput::new(
             vec![InferInputBatch {
@@ -192,18 +150,20 @@ pub struct SessionExport(Session);
 #[wasm_bindgen(js_class = Session)]
 impl SessionExport {
     #[wasm_bindgen(constructor)]
-    pub async fn new(model: TensorReader, quant: usize, quant_nf4: usize, is_puzzle_model: bool) -> Result<Self, JsError> {
-        let session = Session::new(model, quant, quant_nf4, is_puzzle_model).await.map_err(err)?;
+    pub async fn new(
+        model: TensorReader,
+        quant: usize,
+        quant_nf4: usize,
+        is_puzzle_model: bool,
+    ) -> Result<Self, JsError> {
+        let session = Session::new(model, quant, quant_nf4, is_puzzle_model)
+            .await
+            .map_err(err)?;
         Ok(Self(session))
     }
 
-    pub async fn run(
-        &self,
-        tokens: &[u16],
-        output: &mut [f32],
-        state: &StateId,
-    ) -> Result<(), JsError> {
-        let data = self.0.run(tokens, state).await.map_err(err)?;
+    pub async fn run(&self, tokens: &[u16], output: &mut [f32]) -> Result<(), JsError> {
+        let data = self.0.run(tokens).await.map_err(err)?;
         // assert_eq!(data.len(), output.len());
         output.copy_from_slice(&data[..output.len()]);
         Ok(())

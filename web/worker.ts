@@ -2,7 +2,7 @@ if ('function' === typeof importScripts) {
   importScripts('common.js')
   importScripts('web_rwkv_puzzles.js')
 
-  const { Session, NucleusSampler, SimpleSampler, StateId, Tensor, TensorReader } = wasm_bindgen
+  const { Session, NucleusSampler, SimpleSampler, Tensor, TensorReader } = wasm_bindgen
 
   interface TensorInfo {
     shape: Uint32Array
@@ -70,12 +70,12 @@ if ('function' === typeof importScripts) {
     return session
   }
 
-  async function* pipeline(session: wasm_bindgen.Session, tokens: Uint16Array, state: wasm_bindgen.StateId, sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler, stop_tokens: number[], max_len: number) {
+  async function* pipeline(session: wasm_bindgen.Session, tokens: Uint16Array, sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler, stop_tokens: number[], max_len: number) {
     var info = session.info()
     var probs = new Float32Array(info.num_vocab)
 
     for (var i = 0; i < max_len; ++i) {
-      await session.run(tokens, probs, state)
+      await session.run(tokens, probs)
       let token = sampler.sample(probs)
       tokens = new Uint16Array([token])
 
@@ -110,7 +110,6 @@ if ('function' === typeof importScripts) {
     const tokenizer = await initTokenizer(vocab)
     const session = await _session!
     const info = session.info()
-    const state = new StateId()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
@@ -129,7 +128,7 @@ if ('function' === typeof importScripts) {
     const tokens = tokenizer.encode(encoder.encode(prompt))
 
     await window.navigator.locks.request('model', async (lock) => {
-      let p = pipeline(session, tokens, state, sampler, stop_tokens, max_len)
+      let p = pipeline(session, tokens, sampler, stop_tokens, max_len)
 
       window.postMessage(null)
 
