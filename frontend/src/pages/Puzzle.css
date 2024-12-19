@@ -1,0 +1,128 @@
+.app {
+  text-align: center;
+  background-color: #fff8deff;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: black;
+  height: 100vh;
+}
+
+a {
+  font-weight: bold;
+  color: #a6aebf;
+  text-decoration: none;
+}
+
+a:hover {
+  font-weight: bold;
+  color: #c5d3e8;
+}
+
+.app * {
+  padding: 0;
+  margin: 0;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  gap: 8px;
+}
+
+.puzzle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+}
+
+.cell {
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: default;
+  user-select: none;
+}
+
+.run_info {
+  font-size: 16px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+}
+
+.puzzle_title {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.info {
+  padding: 16px 8px 8px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.info-title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.separator {
+  width: 1px;
+  background-color: #ffffff33;
+  height: 100vh;
+}
+
+.logs {
+  background-color: #fff8deff;
+  flex: 1;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 12px;
+  align-items: stretch;
+  white-space: pre-wrap;
+  border: 1px solid #ffffff33;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.log-item {
+  text-align: left;
+}
+
+.controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.button {
+  padding: 8px;
+  flex: 1;
+  border-radius: 8px;
+}

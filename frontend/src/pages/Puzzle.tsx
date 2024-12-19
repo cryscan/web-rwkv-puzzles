@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
-import './App.css'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { P } from './state'
+import { P } from './state_puzzle'
+import { loadData } from '../func/load'
+import { setupWorker } from '../setup_worker'
+import './Puzzle.css'
 
 const width = 750
 const gridSize = width / 2
@@ -9,20 +11,14 @@ const cellGap = 8
 const girdPadding = 16
 const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
-declare global {
-  interface Window {
-    load: () => Promise<void>
-    rwkv_worker: Worker
-    workerMessageReceived: (data: any) => void
-  }
-}
-
-function App() {
+function Puzzle() {
   const [board, setBoard] = useRecoilState(P.board)
   const [, setMoves] = useRecoilState(P.moves)
   const finished = useRecoilValue(P.finished)
   const [, setLogs] = useRecoilState(P.logs)
   const [displayState, setDisplayState] = useRecoilState(P.displayState)
+
+  const initializeRef = useRef(false)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -65,9 +61,18 @@ function App() {
   }
 
   const initializeApp = () => {
-    window.workerMessageReceived = onWorkerMessageReceived
+    if (initializeRef.current) return
+    initializeRef.current = true
 
+    window.workerMessageReceived = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
+
+    const gpu = navigator.gpu
+    if (!gpu) {
+      setTimeout(() => {
+        alert('WebGPU is not supported by this browser.')
+      }, 1000)
+    }
   }
 
   useEffect(() => {
@@ -78,7 +83,7 @@ function App() {
     <div className='app'>
       <Info />
       <div className='separator'></div>
-      <Puzzle />
+      <Blocks />
     </div>
   )
 }
@@ -89,18 +94,15 @@ const Info = () => {
       <div className='info-title'>Web-RWKV In-Browser</div>
       <div>Welcome to the Web-RWKV puzzle solver in browser!</div>
       <div>
-        Check
-        {' '}
+        Check{' '}
         <a href='https://github.com/cryscan/web-rwkv-puzzles' target='_blank'>
           the Github repo
-        </a>
-        {' '}
+        </a>{' '}
         for more details about this demo.
       </div>
       <div>
         Note that this demo runs on WebGPU so make sure that your browser
-        support it before running (See
-        {' '}
+        support it before running (See{' '}
         <a href='https://webgpureport.org/' target='_blank'>
           WebGPU Report
           <svg
@@ -118,20 +120,16 @@ const Info = () => {
         ).
       </div>
       <div>
-        Thanks to
-        {' '}
+        Thanks to{' '}
         <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
           josephrocca
-        </a>
-        {' '}
-        and
-        {' '}
+        </a>{' '}
+        and{' '}
         <a href='https://github.com/HaloWang' target='_blank'>
           HaloWang
-        </a>
-        {' '}
-        for the awesome in-browser implementation and the website (I am
-        totally unfamiliar with web dev LoL).
+        </a>{' '}
+        for the awesome in-browser implementation and the website (I am totally
+        unfamiliar with web dev LoL).
       </div>
       <Logs />
     </div>
@@ -228,15 +226,16 @@ function buildPrompt(board: number[]): string {
     "12 ", "13 ", "14 ", "15 ",
   ];
 
-  let prompt = ''
+  var prompt = ''
   for (let i = 0; i < board.length; i++) {
     prompt += map[board[i]]
     if (i % 4 == 3) prompt += '\n'
   }
+  prompt = `<input>\n<board>\n${prompt}</board>\n</input>\n`
   return prompt
 }
 
-const Puzzle = () => {
+const Blocks = () => {
   const [, setTime] = useRecoilState(P.time)
   const [displayState] = useRecoilState(P.displayState)
   const finished = useRecoilValue(P.finished)
@@ -330,7 +329,8 @@ const Controls = () => {
       return
     }
 
-    await window.load()
+    const chunks = await loadData(P.modelUrl)
+    await setupWorker(chunks, 'puzzle')
 
     if (!window.rwkv_worker) {
       alert('Please load the model first.')
@@ -341,7 +341,7 @@ const Controls = () => {
     setDisplayState('running')
     setTime(0)
     setLogs([])
-    window.rwkv_worker.postMessage(buildPrompt(board))
+    invoke(board)
   }
 
   return (
@@ -366,6 +366,20 @@ const Controls = () => {
       </button>
     </div>
   )
+}
+
+const invoke = (board: number[]) => {
+  const options = {
+    max_len: 1000000,
+    prompt: buildPrompt(board),
+    stop_tokens: [59],
+    temperature: 1.0,
+    top_p: 0.5,
+    vocab: '../assets/puzzle15_vocab.json',
+    sampler: 'simple',
+    task: 'puzzle',
+  }
+  window.rwkv_worker.postMessage(JSON.stringify(options))
 }
 
 const Cell = (options: {
@@ -396,4 +410,4 @@ const Cell = (options: {
   )
 }
 
-export default App
+export default Puzzle
