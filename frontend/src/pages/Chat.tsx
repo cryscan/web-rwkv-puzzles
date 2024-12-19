@@ -208,7 +208,7 @@ const Info = () => {
       }}
     >
       <img
-        src='/assets/logo.png'
+        src='./assets/logo.png'
         alt='RWKV WebGPU Logo'
         style={{ height: 128 }}
       />
