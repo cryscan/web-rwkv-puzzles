@@ -8,6 +8,7 @@ use half::f16;
 use wasm_bindgen::prelude::*;
 use web_rwkv::{
     context::{Context, ContextBuilder, InstanceExt},
+    num::Float,
     runtime::{
         infer::{InferInput, InferInputBatch, InferOption},
         loader::{Loader, Reader},
@@ -15,11 +16,11 @@ use web_rwkv::{
         softmax::softmax_one,
         v4, v5, v6, v7, Runtime, SimpleRuntime,
     },
-    tensor::TensorCpu,
+    tensor::{TensorCpu, ops::TensorOp},
     wgpu::{Instance, PowerPreference},
 };
 
-use crate::loader::TensorReader;
+use crate::{loader::TensorReader, ops::TensorOpExt};
 
 pub const TOKEN_CHUNK_SIZE: usize = 128;
 
@@ -35,6 +36,22 @@ impl StateId {
     }
 }
 
+/// We need to slightly modify the model structure using hooks.
+fn make_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
+    let mut hooks = v6::HookMap::new();
+    for layer in 0..info.num_layer {
+        // add a custom operation before time-mix for each layer
+        hooks.insert(
+            v6::Hook::PreAttTimeDecayActivate(layer),
+            Box::new(move |frame: v6::Frame<F>| {
+                let op = TensorOp::mul_exp(&frame.buffer.time_decay, &frame.buffer.att_k)?;
+                Ok(TensorOp::List(vec![op]))
+            }),
+        );
+    }
+    Ok(hooks)
+}
+
 pub struct Session {
     context: Context,
     info: ModelInfo,
@@ -45,7 +62,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn new<R: Reader>(model: R, quant: usize, quant_nf4: usize) -> Result<Self> {
+    pub async fn new<R: Reader>(model: R, quant: usize, quant_nf4: usize, is_puzzle_model: bool) -> Result<Self> {
         let instance = Instance::new(Default::default());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
@@ -63,34 +80,44 @@ impl Session {
             .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
             .collect();
         let builder = ModelBuilder::new(&context, model).quant(quant);
-        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match info.version {
-            ModelVersion::V4 => {
-                let model = builder.build_v4().await?;
-                let bundle = v4::Bundle::<f16>::new(model, 1);
-                let state = bundle.state();
-                let runtime = SimpleRuntime::new(bundle);
-                (Box::new(runtime), Box::new(state))
-            }
-            ModelVersion::V5 => {
-                let model = builder.build_v5().await?;
-                let bundle = v5::Bundle::<f16>::new(model, 1);
-                let state = bundle.state();
-                let runtime = SimpleRuntime::new(bundle);
-                (Box::new(runtime), Box::new(state))
-            }
-            ModelVersion::V6 => {
+        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match is_puzzle_model {
+            true => {
+                let hooks = make_hooks(&info)?;
                 let model = builder.build_v6().await?;
-                let bundle = v6::Bundle::<f16>::new(model, 1);
+                let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
                 let state = bundle.state();
                 let runtime = SimpleRuntime::new(bundle);
                 (Box::new(runtime), Box::new(state))
             }
-            ModelVersion::V7 => {
-                let model = builder.build_v7().await?;
-                let bundle = v7::Bundle::<f16>::new(model, 1);
-                let state = bundle.state();
-                let runtime = SimpleRuntime::new(bundle);
-                (Box::new(runtime), Box::new(state))
+            false => match info.version {
+                ModelVersion::V4 => {
+                    let model = builder.build_v4().await?;
+                    let bundle = v4::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V5 => {
+                    let model = builder.build_v5().await?;
+                    let bundle = v5::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V6 => {
+                    let model = builder.build_v6().await?;
+                    let bundle = v6::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V7 => {
+                    let model = builder.build_v7().await?;
+                    let bundle = v7::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
             }
         };
 
@@ -165,8 +192,8 @@ pub struct SessionExport(Session);
 #[wasm_bindgen(js_class = Session)]
 impl SessionExport {
     #[wasm_bindgen(constructor)]
-    pub async fn new(model: TensorReader, quant: usize, quant_nf4: usize) -> Result<Self, JsError> {
-        let session = Session::new(model, quant, quant_nf4).await.map_err(err)?;
+    pub async fn new(model: TensorReader, quant: usize, quant_nf4: usize, is_puzzle_model: bool) -> Result<Self, JsError> {
+        let session = Session::new(model, quant, quant_nf4, is_puzzle_model).await.map_err(err)?;
         Ok(Self(session))
     }
 
