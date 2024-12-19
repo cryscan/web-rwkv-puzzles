@@ -9,6 +9,10 @@ if ('function' === typeof importScripts) {
     data_offsets: [number, number]
   }
 
+  const config = {
+    is_puzzle_model: false
+  }
+
   async function initReader(blob: Blob) {
     console.log('model data size: ', blob.size)
 
@@ -50,6 +54,8 @@ if ('function' === typeof importScripts) {
     return new wasm_bindgen.Tokenizer(vocab)
   }
 
+  var is_puzzle_model = false
+
   async function initSession(blob: Blob) {
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
@@ -59,8 +65,7 @@ if ('function' === typeof importScripts) {
 
     let reader = await initReader(blob)
     // @HaloWang: 修改这里的参数
-    const is_puzzle_model = false
-    let session = await new Session(reader, 0, 0, is_puzzle_model)
+    let session = await new Session(reader, 0, 0, config.is_puzzle_model)
     console.log('runtime loaded')
     return session
   }
@@ -85,6 +90,13 @@ if ('function' === typeof importScripts) {
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
 
   async function runChat(message: string, window: Window) {
+    if ((await _session) === undefined) {
+      window.postMessage(null)
+      window.postMessage('Error: Model is not loaded.')
+      console.warn('Model is not loaded.')
+      return
+    }
+
     const options = JSON.parse(message)
 
     const max_len = options.max_len
@@ -130,8 +142,6 @@ if ('function' === typeof importScripts) {
     })
   }
 
-  // @Molly 我单独写了一个这个函数以便比对两个调用的区别
-  // 可能需要较为频繁地运行 /build.bash 来更新 worker.ts
   async function runPuzzle(message: string, window: Window) {
     const options = JSON.parse(message)
 
@@ -182,20 +192,25 @@ if ('function' === typeof importScripts) {
     async function (e: MessageEvent<Uint8Array[] | String>) {
       // Load model
       if (e.data instanceof Array) {
+        console.log('Loading model...')
+        console.log(config)
         let blob = new Blob(e.data)
         _session = initSession(blob)
         return
       }
 
-      // Check if model is loaded
-      if ((await _session) === undefined) {
-        this.postMessage(null)
-        this.postMessage('Error: Model is not loaded.')
-        return
-      }
-
       if (typeof e.data === 'string') {
-        runPuzzle(e.data, this)
+        const options = JSON.parse(e.data)
+        const task = options.task
+        if (task === 'puzzle') {
+          runPuzzle(e.data, this)
+        } else if (task === 'chat') {
+          runChat(e.data, this)
+        } else if (task === 'set_sampler_is_puzzle') {
+          config.is_puzzle_model = options.is_puzzle_model
+        } else {
+          console.warn('Invalid task.')
+        }
       }
     },
     false
