@@ -1,10 +1,5 @@
 import { atom, selector } from 'recoil'
 
-const displayState = atom<'none' | 'loading' | 'loaded' | 'running'>({
-  key: 'loadState',
-  default: 'none',
-})
-
 const modelLoaded = atom({
   key: 'modelLoaded',
   default: false,
@@ -41,7 +36,6 @@ const modelUrl = atom({
 })
 
 export const P = {
-  displayState,
   modelLoaded,
   modelLoading,
   loaded,
