@@ -35,6 +35,8 @@ jobs:
         run: sudo apt-get update -yq --allow-releaseinfo-change
       - name: Install Node.js
         uses: actions/setup-node@v4.0.2
+        with:
+          node-version: '>=20.0'
       - name: Install Tools
         run: |
           npm install --global yarn
