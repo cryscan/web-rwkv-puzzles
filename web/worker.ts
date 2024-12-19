@@ -89,7 +89,7 @@ if ('function' === typeof importScripts) {
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
 
-  async function runChat(message: string, window: Window) {
+  async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
       window.postMessage('Error: Model is not loaded.')
@@ -126,8 +126,7 @@ if ('function' === typeof importScripts) {
         throw 'invalid sampler'
     }
 
-    var tokens = tokenizer.encode(encoder.encode(prompt))
-    var out = []
+    const tokens = tokenizer.encode(encoder.encode(prompt))
 
     await window.navigator.locks.request('model', async (lock) => {
       let p = pipeline(session, tokens, state, sampler, stop_tokens, max_len)
@@ -136,52 +135,6 @@ if ('function' === typeof importScripts) {
 
       for await (let token of p) {
         let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-        out.push(token)
-        window.postMessage({ word, token })
-      }
-    })
-  }
-
-  async function runPuzzle(message: string, window: Window) {
-    const options = JSON.parse(message)
-
-    const max_len = options.max_len
-    const promptRaw = options.prompt
-    const stop_tokens = options.stop_tokens
-    const temperature = options.temperature
-    const top_p = options.top_p
-    const vocab = options.vocab
-    const samplerName = options.sampler
-
-    var tokenizer = await initTokenizer(vocab)
-    var session = await _session!
-    var info = session.info()
-    var sampler = new SimpleSampler(info)
-
-    // var input = e.data
-    // console.log(input)
-
-    var prompt = `<input>\n<board>\n${promptRaw}</board>\n</input>\n`
-    console.log(prompt)
-
-    var state = new StateId()
-
-    var encoder = new TextEncoder()
-    var decoder = new TextDecoder()
-
-    var tokens = tokenizer.encode(encoder.encode(prompt))
-    var out = []
-    console.log(`prompt length: ${tokens.length}`)
-    console.log(tokens)
-
-    await window.navigator.locks.request('model', async (lock) => {
-      let p = pipeline(session, tokens, state, sampler, [59], 1000000)
-
-      window.postMessage(null)
-
-      for await (let token of p) {
-        let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-        out.push(token)
         window.postMessage({ word, token })
       }
     })
@@ -202,10 +155,8 @@ if ('function' === typeof importScripts) {
       if (typeof e.data === 'string') {
         const options = JSON.parse(e.data)
         const task = options.task
-        if (task === 'puzzle') {
-          runPuzzle(e.data, this)
-        } else if (task === 'chat') {
-          runChat(e.data, this)
+        if (task === 'puzzle' || task === 'chat') {
+          run(e.data, this)
         } else if (task === 'set_sampler_is_puzzle') {
           config.is_puzzle_model = options.is_puzzle_model
         } else {

@@ -226,14 +226,13 @@ function buildPrompt(board: number[]): string {
     "12 ", "13 ", "14 ", "15 ",
   ];
 
-  let prompt = ''
+  var prompt = ''
   for (let i = 0; i < board.length; i++) {
     prompt += map[board[i]]
     if (i % 4 == 3) prompt += '\n'
   }
+  prompt = `<input>\n<board>\n${prompt}</board>\n</input>\n`
   return prompt
-  // var prompt2 = `<input>\n<board>\n${prompt}</board>\n</input>\n`
-  // return prompt2
 }
 
 const Blocks = () => {
