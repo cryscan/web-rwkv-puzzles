@@ -58,8 +58,9 @@ if ('function' === typeof importScripts) {
     // console.log("model: ", bin.byteLength);
 
     let reader = await initReader(blob)
-    // @Molly 我们只需要更改这里吗?
-    let session = await new Session(reader, 0, 0)
+    // @HaloWang: 修改这里的参数
+    const is_puzzle_model = false
+    let session = await new Session(reader, 0, 0, is_puzzle_model)
     console.log('runtime loaded')
     return session
   }
