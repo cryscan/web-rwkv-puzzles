@@ -232,6 +232,8 @@ function buildPrompt(board: number[]): string {
     if (i % 4 == 3) prompt += '\n'
   }
   return prompt
+  // var prompt2 = `<input>\n<board>\n${prompt}</board>\n</input>\n`
+  // return prompt2
 }
 
 const Blocks = () => {
@@ -328,7 +330,7 @@ const Controls = () => {
       return
     }
 
-    const chunks = await loadData('./assets/models/rwkv-puzzle15.st')
+    const chunks = await loadData(P.modelUrl)
     await setupWorker(chunks)
 
     if (!window.rwkv_worker) {
@@ -340,7 +342,7 @@ const Controls = () => {
     setDisplayState('running')
     setTime(0)
     setLogs([])
-    window.rwkv_worker.postMessage(buildPrompt(board))
+    invoke(board)
   }
 
   return (
@@ -365,6 +367,19 @@ const Controls = () => {
       </button>
     </div>
   )
+}
+
+const invoke = (board: number[]) => {
+  const options = {
+    max_len: 1000000,
+    prompt: buildPrompt(board),
+    stop_tokens: [59],
+    temperature: 1.0,
+    top_p: 0.5,
+    vocab: '../assets/puzzle15_vocab.json',
+    sampler: 'simple',
+  }
+  window.rwkv_worker.postMessage(JSON.stringify(options))
 }
 
 const Cell = (options: {

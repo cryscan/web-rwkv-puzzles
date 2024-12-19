@@ -157,10 +157,11 @@ const invoke = (message: string) => {
 \nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.
 \nUser: ${message}
 \nAssistant:`,
-    stop_tokens: [],
+    stop_tokens: [261],
     temperature: 1.0,
     top_p: 0.5,
     vocab: '../assets/rwkv_vocab_v20230424.json',
+    sampler: 'nucleus',
   }
   window.rwkv_worker.postMessage(JSON.stringify(options))
 }
