@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
+import { Button } from 'antd'
 import { P } from './state_puzzle'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
@@ -346,14 +347,14 @@ const Controls = () => {
 
   return (
     <div className='controls'>
-      <button
+      <Button
         className='button'
         onClick={onClickNewGame}
         disabled={displayState == 'running'}
       >
         New Game
-      </button>
-      <button
+      </Button>
+      <Button
         className='button'
         onClick={onClickStart}
         disabled={displayState == 'running'}
@@ -363,7 +364,7 @@ const Controls = () => {
           : finished
             ? '🎉 Finished'
             : '🚀 Start'}
-      </button>
+      </Button>
     </div>
   )
 }
