@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BlockOutlined, MessageOutlined } from '@ant-design/icons'
+import { BlockOutlined, MessageOutlined, CustomerServiceOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { App, Layout, Menu, theme } from 'antd'
 import Link from 'antd/es/typography/Link'
@@ -7,6 +7,7 @@ import { BrowserRouter, Router, Routes, useNavigate } from 'react-router-dom'
 import { Route } from 'react-router-dom'
 import Puzzle from './pages/Puzzle'
 import Chat from './pages/Chat'
+import Music from './pages/Music'
 
 const { Content, Footer, Sider } = Layout
 
@@ -29,11 +30,12 @@ function getItem(
 const menuItems: MenuItem[] = [
   getItem('Chat', 'chat', <MessageOutlined />),
   getItem('15 Puzzle', '15puzzle', <BlockOutlined />),
+  getItem('Music', 'music', <CustomerServiceOutlined />),
 ]
 
 const Root: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
-  const {} = theme.useToken()
+  const { } = theme.useToken()
   const navigate = useNavigate()
   const currentPath = window.location.pathname.substring(1)
 
@@ -65,6 +67,7 @@ const Root: React.FC = () => {
           <Routes>
             <Route path='/chat' element={<Chat />} />
             <Route path='/15puzzle' element={<Puzzle />} />
+            <Route path='/music' element={<Music />} />
           </Routes>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
