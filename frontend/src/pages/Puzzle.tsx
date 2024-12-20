@@ -329,7 +329,7 @@ const Controls = () => {
       return
     }
 
-    const chunks = await loadData(P.modelUrl)
+    const chunks = await loadData('puzzle', P.modelUrl, '')
     await setupWorker(chunks, 'puzzle')
 
     if (!window.puzzle_worker) {
@@ -361,8 +361,8 @@ const Controls = () => {
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-          ? '🎉 Finished'
-          : '🚀 Start'}
+            ? '🎉 Finished'
+            : '🚀 Start'}
       </button>
     </div>
   )

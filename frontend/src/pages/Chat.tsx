@@ -176,6 +176,7 @@ const Info = () => {
 
   const modelUrl = useRecoilValue(P.modelUrl)
   const remoteUrl = useRecoilValue(P.remoteUrl)
+  const remoteKey = useRecoilValue(P.remoteKey)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.loaded)
@@ -187,7 +188,9 @@ const Info = () => {
     setLoading(true)
     setLoaded(false)
     const chunks = await loadData(
+      "chat",
       kDebugMode ? modelUrl : remoteUrl,
+      remoteKey,
       (progress) => {
         setLoadedProgress(progress)
       },

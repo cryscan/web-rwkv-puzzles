@@ -1,16 +1,19 @@
 /**
  * Load model from URL and cache it
+ * @param name - The name of the model
  * @param url - The URL of the model
  * @param onProgress - Callback function to report progress
  * @returns The chunks of the model, will be used to load the model into the worker
  */
 export const loadData = async (
+  name: string,
   url: string,
+  key: string,
   onProgress?: (progress: number) => void,
   onContentLength?: (contentLength: number) => void,
-  onLoadedLength?: (loadedLength: number) => void
+  onLoadedLength?: (loadedLength: number) => void,
 ): Promise<Uint8Array[]> => {
-  const cacheKey = `rwkv.models.${url}`
+  const cacheKey = `rwkv.models.${name}`
   const cache = await caches.open(cacheKey)
 
   const cacheResponse = await cache.match(cacheKey)
@@ -29,7 +32,10 @@ export const loadData = async (
   }
 
   console.log('🔄 Performing network request to load model:\n', url)
-  const response = await fetch(url)
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "x-api-key": key }
+  })
   const reader = response.body!.getReader()
   const contentLength = +response.headers.get('Content-Length')!
 
