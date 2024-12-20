@@ -172,7 +172,10 @@ const invoke = (message: string, isInit: boolean) => {
 }
 
 const Info = () => {
+  const kDebugMode = process.env.NODE_ENV == 'development'
+
   const modelUrl = useRecoilValue(P.modelUrl)
+  const remoteUrl = useRecoilValue(P.remoteUrl)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.loaded)
@@ -184,7 +187,7 @@ const Info = () => {
     setLoading(true)
     setLoaded(false)
     const chunks = await loadData(
-      modelUrl,
+      kDebugMode ? modelUrl : remoteUrl,
       (progress) => {
         setLoadedProgress(progress)
       },

@@ -35,6 +35,11 @@ const modelUrl = atom({
   default: './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
 })
 
+const remoteUrl = atom({
+  key: 'remoteUrl',
+  default: 'https://download.rwkvos.com/rwkvmusic/downloads/1.0/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+})
+
 export const P = {
   modelLoaded,
   modelLoading,
@@ -43,4 +48,5 @@ export const P = {
   loadedSize,
   loadedProgress,
   modelUrl,
+  remoteUrl,
 }
