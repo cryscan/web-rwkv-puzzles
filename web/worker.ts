@@ -69,18 +69,19 @@ if ('function' === typeof importScripts) {
   }
 
   async function* pipeline(session: wasm_bindgen.Session, tokens: Uint16Array, sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler, stop_tokens: number[], max_len: number) {
-    var info = session.info()
-    var probs = new Float32Array(info.num_vocab)
+    let info = session.info()
+    let probs = new Float32Array(info.num_vocab)
 
     for (var i = 0; i < max_len; ++i) {
       await session.run(tokens, probs)
+
       let token = sampler.sample(probs)
       tokens = new Uint16Array([token])
 
       yield token
 
-      if (token in stop_tokens) {
-        return
+      if (stop_tokens.includes(token)) {
+        break
       }
     }
   }

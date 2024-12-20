@@ -20,7 +20,7 @@ const items: PromptsProps['items'] = [
   {
     key: '1',
     icon: <BulbOutlined style={{ color: '#FFD700' }} />,
-    description: 'Tell me about eiffel tower.',
+    description: 'Tell me about the Eiffel Tower.',
   },
   {
     key: '2',
@@ -52,6 +52,7 @@ const Chat = () => {
 
     if (isEnd) {
       llmContent.current += word
+      console.log(llmContent.current)
       window.onSuccessBinding(llmContent.current)
     } else {
       llmContent.current += word
@@ -153,7 +154,7 @@ const Chat = () => {
 const invoke = (message: string, isInit: boolean) => {
   let prompt: string
   if (isInit) prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
-  else prompt = `User: ${message}\n\nAssistant:`
+  else prompt = `\n\nUser: ${message}\n\nAssistant:`
 
   const options = {
     max_len: 500,
