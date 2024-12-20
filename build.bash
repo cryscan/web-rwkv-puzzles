@@ -2,7 +2,7 @@
 
 # Build wasm
 echo "==== building wasm ===="
-RUSTFLAGS=--cfg=web_sys_unstable_apis wasm-pack build --release --target no-modules
+wasm-pack build --release --target no-modules
 
 echo "==== copy pkg files ===="
 cp pkg/web_rwkv_puzzles.js web/
