@@ -14,7 +14,7 @@ export const loadData = async (
   const cache = await caches.open(cacheKey)
 
   const cacheResponse = await cache.match(cacheKey)
-  if (cacheResponse) console.log('✅ model loaded from cache:\n', url)
+  if (cacheResponse) console.log('✅ Model loaded from cache:\n', url)
   if (cacheResponse) {
     onProgress?.(100)
     const blob = await cacheResponse.blob()
@@ -55,14 +55,18 @@ export const loadData = async (
     onLoadedLength?.(receivedLength)
   }
 
-  console.log('✅ model loaded from network:\n', url)
+  console.log('✅ Model loaded from network:\n', url)
   const blob = new Blob(chunks)
   const completeResponse = new Response(blob, {
     headers: response.headers,
     status: response.status,
     statusText: response.statusText,
   })
-  await cache.put(cacheKey, completeResponse)
+  try {
+    await cache.put(cacheKey, completeResponse)
+  } catch (e) {
+    console.error('😡 Failed to cache model:\n', e)
+  }
 
   return chunks
 }
