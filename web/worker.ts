@@ -2,7 +2,7 @@ if ('function' === typeof importScripts) {
   importScripts('common.js')
   importScripts('web_rwkv_puzzles.js')
 
-  const { Session, NucleusSampler, SimpleSampler, Tensor, TensorReader } = wasm_bindgen
+  const { Session, SessionType, NucleusSampler, SimpleSampler, Tensor, TensorReader } = wasm_bindgen
 
   interface TensorInfo {
     shape: Uint32Array
@@ -10,7 +10,7 @@ if ('function' === typeof importScripts) {
   }
 
   const config = {
-    is_puzzle_model: false
+    session_type: SessionType.Chat
   }
 
   async function initReader(blob: Blob) {
@@ -54,8 +54,6 @@ if ('function' === typeof importScripts) {
     return new wasm_bindgen.Tokenizer(vocab)
   }
 
-  var is_puzzle_model = false
-
   async function initSession(blob: Blob) {
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
@@ -65,7 +63,7 @@ if ('function' === typeof importScripts) {
 
     let reader = await initReader(blob)
     // @HaloWang: 修改这里的参数
-    let session = await new Session(reader, 0, 0, config.is_puzzle_model)
+    let session = await new Session(reader, 0, 0, config.session_type)
     console.log('runtime loaded')
     return session
   }
@@ -157,8 +155,15 @@ if ('function' === typeof importScripts) {
         const task = options.task
         if (task === 'puzzle' || task === 'chat') {
           run(e.data, this)
-        } else if (task === 'set_sampler_is_puzzle') {
-          config.is_puzzle_model = options.is_puzzle_model
+        } else if (task === 'set_session_type') {
+          switch (options.session_type) {
+            case 'puzzle':
+              config.session_type = SessionType.Puzzle
+              break
+            case 'chat':
+              config.session_type = SessionType.Chat
+              break
+          }
         } else {
           console.warn('Invalid task.')
         }

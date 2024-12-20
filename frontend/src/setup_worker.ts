@@ -33,8 +33,8 @@ export async function setupWorker(
   }
 
   const options = {
-    task: 'set_sampler_is_puzzle',
-    is_puzzle_model: task === 'puzzle',
+    task: 'set_session_type',
+    session_type: task
   }
 
   worker.postMessage(JSON.stringify(options))
