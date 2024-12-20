@@ -61,7 +61,7 @@ const Root: React.FC = () => {
         />
       </Sider>
       <Layout>
-        <Content style={{ margin: '0 16px', display: 'flex', flex: 1 }}>
+        <Content>
           <Routes>
             <Route path='chat' element={<Chat />} />
             <Route path='15puzzle' element={<Puzzle />} />
