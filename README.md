@@ -30,7 +30,6 @@ To build and pack, run
 
 ```bash
 $ ./build.cmd
-$ npm --prefix frontend run build
 ```
 
 ### MacOS
@@ -45,7 +44,6 @@ Then, run the script:
 
 ```bash
 $ ./build.bash
-$ npm --prefix frontend run build
 ```
 
 ## Run

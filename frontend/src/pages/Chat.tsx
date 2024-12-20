@@ -95,10 +95,11 @@ const Chat = () => {
       style={{
         padding: 12,
         boxSizing: 'border-box',
-        overflow: 'scroll',
+        overflowY: 'scroll',
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
+        height: '92vh',
       }}
     >
       {!hasMessages && <Info />}

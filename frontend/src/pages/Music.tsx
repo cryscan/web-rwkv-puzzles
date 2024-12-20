@@ -16,7 +16,6 @@ export default function Music(): JSX.Element {
         { Component: Controller, label: 'controller-section' },
         { Component: Player, label: 'player-section' },
         { Component: Keyboard, label: 'keyboard-section' }
-        
     ];
 
     return (
