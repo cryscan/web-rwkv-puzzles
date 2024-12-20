@@ -1,0 +1,91 @@
+.ReactPiano__Key--accidental {
+  background: url("../assets/black-key.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 60%;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+  top: 0;
+  position: absolute;
+}
+
+.ReactPiano__Key--natural {
+  background: url("../assets/white-key.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 100%;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  z-index: 0;
+  flex: 1;
+  margin-right: 1px;
+}
+.ReactPiano__Key--active {
+  background: url("../assets/white-key-pressed.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.ReactPiano__Key--active.ReactPiano__Key--accidental {
+  background: url("../assets/black-key-pressed.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 60%;
+  width: 100%;
+  border: none;
+}
+
+.ReactPiano__Key--active.ReactPiano__Key--natural {
+  border: none;
+  /* Add a slight opacity change for pressed effect */
+  opacity: 0.9;
+  height: 98%;
+}
+
+/*
+   * Styles for disabled state
+   */
+.ReactPiano__Key--disabled.ReactPiano__Key--accidental {
+  background: #ddd;
+  border: 1px solid #999;
+}
+
+.ReactPiano__Key--disabled.ReactPiano__Key--natural {
+  background: #eee;
+  border: 1px solid #aaa;
+}
+
+/*
+   * Styles for the note label inside a piano key
+   */
+.ReactPiano__NoteLabelContainer {
+  flex: 1;
+  /* Align children .ReactPiano__NoteLabel to the bottom of the key */
+  align-self: flex-end;
+}
+
+.ReactPiano__NoteLabel {
+  font-size: 12px;
+  text-align: center;
+  text-transform: capitalize;
+  /* Disable text selection */
+  user-select: none;
+}
+
+.ReactPiano__NoteLabel--accidental {
+  color: #f8e8d5;
+  margin-bottom: 3px;
+}
+
+.ReactPiano__NoteLabel--natural {
+  color: #888;
+  margin-bottom: 3px;
+}
+
+.ReactPiano__NoteLabel--natural.ReactPiano__NoteLabel--active {
+  color: #f8e8d5;
+}
+
