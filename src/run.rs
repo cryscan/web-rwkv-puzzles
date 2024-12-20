@@ -20,6 +20,7 @@ use crate::{loader::TensorReader, ops::TensorOpExt};
 pub const TOKEN_CHUNK_SIZE: usize = 128;
 
 #[wasm_bindgen]
+#[derive(Debug, Clone, Copy)]
 pub enum SessionType {
     Puzzle,
     Chat,
@@ -131,7 +132,7 @@ impl Session {
         Ok(self.state.load(backed, 0)?)
     }
 
-    pub async fn run(&self, tokens: &[u16]) -> Result<Vec<f32>> {
+    pub async fn run(&self, tokens: &[u16]) -> Result<TensorCpu<f32>> {
         // let backed = self.backed.borrow().clone();
         // self.state.load(backed, 0)?;
 
@@ -151,17 +152,21 @@ impl Session {
 
             let output = output[0].0.clone();
             if !output.is_empty() {
-                let output = match self.ty {
-                    SessionType::Puzzle => output,
-                    SessionType::Chat => softmax_one(&self.context, output).await?,
-                };
-                break output.to_vec();
+                // let output = match self.ty {
+                //     SessionType::Puzzle => output,
+                //     SessionType::Chat => softmax_one(&self.context, output).await?,
+                // };
+                break output;
             }
         };
 
         // self.backed.replace(self.state.back(0).await?);
 
         Ok(output)
+    }
+
+    pub async fn softmax(&self, logits: TensorCpu<f32>) -> Result<TensorCpu<f32>> {
+        Ok(softmax_one(&self.context, logits).await?)
     }
 }
 
@@ -188,13 +193,29 @@ impl SessionExport {
     }
 
     pub async fn run(&self, tokens: &[u16], output: &mut [f32]) -> Result<(), JsError> {
-        let data = self.0.run(tokens).await.map_err(err)?;
+        let data = self.0.run(tokens).await.map_err(err)?.to_vec();
+        output.copy_from_slice(&data[..output.len()]);
+        Ok(())
+    }
+
+    pub async fn softmax(&self, input: &[f32], output: &mut [f32]) -> Result<(), JsError> {
+        assert_eq!(input.len(), output.len());
+        let input = self
+            .0
+            .context
+            .tensor_from_data([input.len(), 1, 1, 1], input.to_vec())
+            .map_err(err)?;
+        let data = self.0.softmax(input).await.map_err(err)?.to_vec();
         output.copy_from_slice(&data[..output.len()]);
         Ok(())
     }
 
     pub fn info(&self) -> ModelInfo {
         self.0.info.clone()
+    }
+
+    pub fn session_type(&self) -> SessionType {
+        self.0.ty
     }
 
     pub fn state_len(&self) -> usize {

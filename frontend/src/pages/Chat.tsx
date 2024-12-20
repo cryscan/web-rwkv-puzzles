@@ -73,7 +73,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(message, llmContent.current === '')
+      invoke(message, llmContent.current)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -153,9 +153,9 @@ const Chat = () => {
   )
 }
 
-const invoke = (message: string, isInit: boolean) => {
+const invoke = (message: string, history: string) => {
   let prompt: string
-  if (isInit) prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
+  if (history === '') prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
   else prompt = `User: ${message}\n\nAssistant:`
 
   const options = {
@@ -165,6 +165,9 @@ const invoke = (message: string, isInit: boolean) => {
     stop_tokens: [endToken],
     temperature: 1.0,
     top_p: 0.5,
+    presence_penalty: 0.5,
+    count_penalty: 0.5,
+    penalty_decay: 0.996,
     vocab: '../assets/rwkv_vocab_v20230424.json',
     sampler: 'nucleus',
     task: 'chat',

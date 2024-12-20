@@ -70,13 +70,25 @@ if ('function' === typeof importScripts) {
 
   async function* pipeline(session: wasm_bindgen.Session, tokens: Uint16Array, sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler, stop_tokens: number[], max_len: number) {
     let info = session.info()
+    let logits = new Float32Array(info.num_vocab)
     let probs = new Float32Array(info.num_vocab)
 
     for (var i = 0; i < max_len; ++i) {
-      await session.run(tokens, probs)
+      await session.run(tokens, logits)
+
+      switch (session.session_type()) {
+        case wasm_bindgen.SessionType.Puzzle:
+          probs = logits
+          break
+        case wasm_bindgen.SessionType.Chat:
+          sampler.transform(logits)
+          await session.softmax(logits, probs)
+          break
+      }
 
       let token = sampler.sample(probs)
       tokens = new Uint16Array([token])
+      sampler.update(tokens)
 
       yield token
 
@@ -103,8 +115,10 @@ if ('function' === typeof importScripts) {
     const stop_tokens = options.stop_tokens
     const temperature = options.temperature
     const top_p = options.top_p
+    const presence_penalty = options.presence_penalty
+    const count_penalty = options.count_penalty
+    const penalty_decay = options.penalty_decay
     const vocab = options.vocab
-    const samplerName = options.sampler
 
     const tokenizer = await initTokenizer(vocab)
     const session = await _session!
@@ -113,15 +127,13 @@ if ('function' === typeof importScripts) {
     const decoder = new TextDecoder()
 
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
-    switch (samplerName) {
-      case 'nucleus':
-        sampler = new NucleusSampler(info, temperature, top_p)
+    switch (session.session_type()) {
+      case SessionType.Chat:
+        sampler = new NucleusSampler(info, temperature, top_p, presence_penalty, count_penalty, penalty_decay)
         break
-      case 'simple':
+      case SessionType.Puzzle:
         sampler = new SimpleSampler(info)
         break
-      default:
-        throw 'invalid sampler'
     }
 
     console.log(prompt)
