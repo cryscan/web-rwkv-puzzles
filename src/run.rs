@@ -40,6 +40,7 @@ pub struct Session {
     info: ModelInfo,
     runtime: Box<dyn Runtime>,
     _state: Box<dyn State>,
+    is_puzzle_model: bool,
 }
 
 impl Session {
@@ -112,6 +113,7 @@ impl Session {
             info,
             runtime,
             _state,
+            is_puzzle_model,
         })
     }
 
@@ -132,7 +134,10 @@ impl Session {
 
             let output = output[0].0.clone();
             if !output.is_empty() {
-                let output = softmax_one(&self.context, output).await?;
+                let output = match self.is_puzzle_model {
+                    true => output,
+                    false => softmax_one(&self.context, output).await?,
+                };
                 break output.to_vec();
             }
         };

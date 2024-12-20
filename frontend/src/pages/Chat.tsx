@@ -154,7 +154,6 @@ const invoke = (message: string, isInit: boolean) => {
   let prompt: string
   if (isInit) prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
   else prompt = `User: ${message}\n\nAssistant:`
-  console.log(prompt)
 
   const options = {
     max_len: 500,

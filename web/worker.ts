@@ -125,6 +125,7 @@ if ('function' === typeof importScripts) {
         throw 'invalid sampler'
     }
 
+    console.log(prompt)
     const tokens = tokenizer.encode(encoder.encode(prompt))
 
     await window.navigator.locks.request('model', async (lock) => {
