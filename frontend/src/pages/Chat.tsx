@@ -16,6 +16,8 @@ import { loadData } from '../func/load'
 import { BulbOutlined } from '@ant-design/icons'
 import { setupWorker } from '../setup_worker'
 
+const endToken = 24281 // User
+
 const items: PromptsProps['items'] = [
   {
     key: '1',
@@ -48,10 +50,9 @@ const Chat = () => {
 
     const { word, token } = event
 
-    const isEnd = token === 261
+    const isEnd = token === endToken
 
     if (isEnd) {
-      llmContent.current += word
       console.log(llmContent.current)
       window.onSuccessBinding(llmContent.current)
     } else {
@@ -154,12 +155,13 @@ const Chat = () => {
 const invoke = (message: string, isInit: boolean) => {
   let prompt: string
   if (isInit) prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
-  else prompt = `\n\nUser: ${message}\n\nAssistant:`
+  else prompt = `User: ${message}\n\nAssistant:`
 
   const options = {
     max_len: 500,
     prompt,
-    stop_tokens: [261],
+    // stop_tokens: [261],
+    stop_tokens: [endToken],
     temperature: 1.0,
     top_p: 0.5,
     vocab: '../assets/rwkv_vocab_v20230424.json',
