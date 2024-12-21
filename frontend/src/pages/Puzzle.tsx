@@ -371,8 +371,10 @@ const Controls = () => {
 
 const invoke = (board: number[]) => {
   const options = {
+    task: 'puzzle',
     max_len: 1000000,
     prompt: buildPrompt(board),
+    state_key: new Date().toUTCString(),
     stop_tokens: [59],
     temperature: 1.0,
     top_p: 0.5,
@@ -382,7 +384,6 @@ const invoke = (board: number[]) => {
     history_tokens: [],
     vocab: '../assets/puzzle15_vocab.json',
     sampler: 'simple',
-    task: 'puzzle',
   }
   window.puzzle_worker.postMessage(JSON.stringify(options))
 }

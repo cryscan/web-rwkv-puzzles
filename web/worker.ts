@@ -9,6 +9,19 @@ if ('function' === typeof importScripts) {
     data_offsets: [number, number]
   }
 
+  interface Option {
+    max_len: number
+    prompt: string
+    state_key: string
+    stop_tokens: number[]
+    temperature: number
+    top_p: number
+    presence_penalty: number
+    count_penalty: number
+    penalty_decay: number
+    vocab: string
+  }
+
   const config = {
     session_type: SessionType.Chat
   }
@@ -99,6 +112,8 @@ if ('function' === typeof importScripts) {
   }
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
+  var _init_state: undefined | Float32Array = undefined
+  var _states: Map<string, Float32Array> = new Map()
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
@@ -108,10 +123,11 @@ if ('function' === typeof importScripts) {
       return
     }
 
-    const options = JSON.parse(message)
+    const options: Option = JSON.parse(message)
 
     const max_len = options.max_len
     const prompt = options.prompt
+    const state_key = options.state_key
     const stop_tokens = options.stop_tokens
     const temperature = options.temperature
     const top_p = options.top_p
@@ -125,6 +141,15 @@ if ('function' === typeof importScripts) {
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
+
+    if (_init_state === undefined) {
+      _init_state = new Float32Array(session.state_len())
+      await session.back(_init_state)
+    }
+
+    console.log(state_key)
+    const state = _states.has(state_key) ? _states.get(state_key)! : new Float32Array(_init_state!)
+    session.load(state)
 
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
     switch (session.session_type()) {
@@ -142,13 +167,14 @@ if ('function' === typeof importScripts) {
     await window.navigator.locks.request('model', async (lock) => {
       let p = pipeline(session, tokens, sampler, stop_tokens, max_len)
 
-      window.postMessage(null)
-
       for await (let token of p) {
         let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
         window.postMessage({ word, token })
       }
     })
+
+    await session.back(state)
+    _states.set(state_key, state)
   }
 
   this.addEventListener(

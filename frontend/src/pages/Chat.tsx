@@ -16,7 +16,7 @@ import { loadData } from '../func/load'
 import { BulbOutlined } from '@ant-design/icons'
 import { setupWorker } from '../setup_worker'
 
-const endToken = 24281 // User
+const stop = 24281 // User
 
 const items: PromptsProps['items'] = [
   {
@@ -45,14 +45,13 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
 const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
+  const state = useRecoilValue(P.stateKey)
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
 
     const { word, token } = event
 
-    const isEnd = token === endToken
-
-    if (isEnd) {
+    if (token === stop) {
       console.log(llmContent.current)
       window.onSuccessBinding(llmContent.current)
     } else {
@@ -73,7 +72,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(message, llmContent.current)
+      invoke(message, llmContent.current, state)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -153,16 +152,17 @@ const Chat = () => {
   )
 }
 
-const invoke = (message: string, history: string) => {
+const invoke = (message: string, history: string, state: string) => {
   let prompt: string
   if (history === '') prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
   else prompt = `User: ${message}\n\nAssistant:`
 
   const options = {
+    task: 'chat',
     max_len: 500,
     prompt,
-    // stop_tokens: [261],
-    stop_tokens: [endToken],
+    state_key: state,
+    stop_tokens: [stop],
     temperature: 1.0,
     top_p: 0.5,
     presence_penalty: 0.5,
@@ -170,7 +170,6 @@ const invoke = (message: string, history: string) => {
     penalty_decay: 0.996,
     vocab: '../assets/rwkv_vocab_v20230424.json',
     sampler: 'nucleus',
-    task: 'chat',
   }
   window.chat_worker.postMessage(JSON.stringify(options))
 }
@@ -187,6 +186,9 @@ const Info = () => {
   const [progress, setProgress] = useRecoilState(P.loadedProgress)
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
+  const [, setStateKey] = useRecoilState(P.stateKey)
+
+  setStateKey(new Date().toUTCString())
 
   const onClickLoadModel = async () => {
     setLoading(true)

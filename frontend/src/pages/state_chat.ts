@@ -30,6 +30,11 @@ const loadedProgress = atom({
   default: 0,
 })
 
+const stateKey = atom({
+  key: 'stateKey',
+  default: new Date().toUTCString()
+})
+
 const modelUrl = atom({
   key: 'modelUrl',
   default: './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
@@ -52,6 +57,7 @@ export const P = {
   modelSize,
   loadedSize,
   loadedProgress,
+  stateKey,
   modelUrl,
   remoteUrl,
   remoteKey,
