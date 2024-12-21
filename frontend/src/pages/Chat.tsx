@@ -43,18 +43,26 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
 const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
-  const state = useRecoilValue(P.stateKey)
+  const llmState = React.useRef(undefined)
+  const stateKey = useRecoilValue(P.stateKey)
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
 
-    const { word, token } = event
-
-    if (token === stop) {
-      console.log(llmContent.current)
-      window.onSuccessBinding(llmContent.current)
-    } else {
-      llmContent.current += word
-      window.onUpdateBinding(llmContent.current)
+    switch (event.type) {
+      case 'state':
+        console.log('✅ State updated')
+        llmState.current = event.state
+        break
+      case 'token':
+        const { word, token } = event
+        if (token === stop) {
+          console.log(llmContent.current)
+          window.onSuccessBinding(llmContent.current)
+        } else {
+          llmContent.current += word
+          window.onUpdateBinding(llmContent.current)
+        }
+        break
     }
   }
 
@@ -70,7 +78,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(message, llmContent.current, state)
+      invoke(message, llmContent.current, stateKey)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },

@@ -4,7 +4,6 @@ export async function setupWorker(
 ) {
   console.log('🔄 Loading worker')
   var worker = new Worker('llm/worker.js')
-
   console.log('✅ Worker loaded')
 
   switch (type) {

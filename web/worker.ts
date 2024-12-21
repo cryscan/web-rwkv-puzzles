@@ -27,7 +27,7 @@ if ('function' === typeof importScripts) {
   }
 
   async function initReader(blob: Blob) {
-    console.log('model data size: ', blob.size)
+    console.log(`📌 Model data size: ${blob.size}`)
 
     if (blob.size < 8) {
       throw 'header too small'
@@ -63,7 +63,7 @@ if ('function' === typeof importScripts) {
 
     var req = await fetch(url)
     var vocab = await req.text()
-    console.log('tokenizer: ' + vocab.length)
+    console.log(`📌 Tokenizer: ${vocab.length}`)
     return new wasm_bindgen.Tokenizer(vocab)
   }
 
@@ -77,7 +77,7 @@ if ('function' === typeof importScripts) {
     let reader = await initReader(blob)
     // @HaloWang: 修改这里的参数
     let session = await new Session(reader, 0, 0, config.session_type)
-    console.log('runtime loaded')
+    console.log('✅ Runtime loaded')
     return session
   }
 
@@ -147,7 +147,7 @@ if ('function' === typeof importScripts) {
       await session.back(_init_state)
     }
 
-    console.log(state_key)
+    console.log(`📌 State key: ${state_key}`)
     const state = _states.has(state_key) ? _states.get(state_key)! : new Float32Array(_init_state!)
     session.load(state)
 
@@ -169,12 +169,13 @@ if ('function' === typeof importScripts) {
 
       for await (let token of p) {
         let word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-        window.postMessage({ word, token })
+        window.postMessage({ type: 'token', word, token })
       }
     })
 
     await session.back(state)
     _states.set(state_key, state)
+    window.postMessage({ type: 'state', state })
   }
 
   this.addEventListener(
@@ -182,8 +183,8 @@ if ('function' === typeof importScripts) {
     async function (e: MessageEvent<Uint8Array[] | String>) {
       // Load model
       if (e.data instanceof Array) {
-        console.log('Loading model...')
-        console.log(config)
+        console.log('🔄 Loading model')
+        console.log(`📌 Session type: ${config.session_type}`)
         let blob = new Blob(e.data)
         _session = initSession(blob)
         return
@@ -192,19 +193,23 @@ if ('function' === typeof importScripts) {
       if (typeof e.data === 'string') {
         const options = JSON.parse(e.data)
         const task = options.task
-        if (task === 'puzzle' || task === 'chat') {
-          run(e.data, this)
-        } else if (task === 'set_session_type') {
-          switch (options.type) {
-            case 'puzzle':
-              config.session_type = SessionType.Puzzle
-              break
-            case 'chat':
-              config.session_type = SessionType.Chat
-              break
-          }
-        } else {
-          console.warn('Invalid task.')
+        switch (task) {
+          case 'puzzle':
+          case 'chat':
+            run(e.data, this)
+            break
+          case 'set_session_type':
+            switch (options.type) {
+              case 'puzzle':
+                config.session_type = SessionType.Puzzle
+                break
+              case 'chat':
+                config.session_type = SessionType.Chat
+                break
+            }
+            break
+          default:
+            console.warn(`🤔 Invalid task: ${task}`)
         }
       }
     },
