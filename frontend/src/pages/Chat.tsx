@@ -1,19 +1,17 @@
-import { UserOutlined } from '@ant-design/icons'
 import {
   Bubble,
-  PromptProps,
   Prompts,
   PromptsProps,
   Sender,
   useXAgent,
   useXChat,
 } from '@ant-design/x'
+import { BulbOutlined, UserOutlined } from '@ant-design/icons'
 import { Button, Flex, Progress, type GetProp } from 'antd'
 import React, { useEffect } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
-import { BulbOutlined } from '@ant-design/icons'
 import { setupWorker } from '../setup_worker'
 
 const stop = 24281 // User

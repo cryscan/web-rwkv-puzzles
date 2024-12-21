@@ -195,7 +195,7 @@ if ('function' === typeof importScripts) {
         if (task === 'puzzle' || task === 'chat') {
           run(e.data, this)
         } else if (task === 'set_session_type') {
-          switch (options.session_type) {
+          switch (options.type) {
             case 'puzzle':
               config.session_type = SessionType.Puzzle
               break
