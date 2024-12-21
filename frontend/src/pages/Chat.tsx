@@ -6,8 +6,8 @@ import {
   useXAgent,
   useXChat,
 } from '@ant-design/x'
-import { BulbOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Flex, Progress, type GetProp } from 'antd'
+import { BarChartOutlined, BulbOutlined, UserOutlined } from '@ant-design/icons'
+import { Button, Flex, FloatButton, Progress, type GetProp } from 'antd'
 import React, { useEffect } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -43,15 +43,16 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
 const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
-  const llmState = React.useRef(undefined)
+
   const stateKey = useRecoilValue(P.stateKey)
+  const [stateValue, setStateValue] = useRecoilState(P.stateValue)
+
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
-
     switch (event.type) {
       case 'state':
         console.log('✅ State updated')
-        llmState.current = event.state
+        setStateValue(event.state)
         break
       case 'token':
         const { word, token } = event
@@ -90,6 +91,7 @@ const Chat = () => {
   })
 
   const hasMessages = messages.length > 0
+  const hasState = !(stateValue === undefined)
 
   const [loaded] = useRecoilState(P.loaded)
 
@@ -154,6 +156,7 @@ const Chat = () => {
       <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
         Disclaimer: Generated content may be inaccurate or false.
       </div>
+      {loaded && hasState && <FloatButton icon={<BarChartOutlined />} />}
     </Flex>
   )
 }
@@ -193,8 +196,10 @@ const Info = () => {
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
   const [, setStateKey] = useRecoilState(P.stateKey)
+  const [, setStateValue] = useRecoilState(P.stateValue)
 
   setStateKey(new Date().toUTCString())
+  setStateValue(undefined)
 
   const onClickLoadModel = async () => {
     setLoading(true)
