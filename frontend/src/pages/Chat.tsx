@@ -44,6 +44,7 @@ const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
 
+  const worker = useRecoilValue(P.worker)
   const stateKey = useRecoilValue(P.stateKey)
   const [stateValue, setStateValue] = useRecoilState(P.stateValue)
 
@@ -68,7 +69,7 @@ const Chat = () => {
   }
 
   const initializeApp = () => {
-    window.onChatMessageReceived = onWorkerMessageReceived
+    window.chat = onWorkerMessageReceived;
   }
 
   useEffect(() => {
@@ -79,7 +80,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(message, llmContent.current, stateKey)
+      invoke(worker, message, llmContent.current, stateKey)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -91,7 +92,7 @@ const Chat = () => {
   })
 
   const hasMessages = messages.length > 0
-  const hasState = !(stateValue === undefined)
+  const hasState = stateValue !== undefined
 
   const [loaded] = useRecoilState(P.loaded)
 
@@ -161,7 +162,7 @@ const Chat = () => {
   )
 }
 
-const invoke = (message: string, history: string, state: string) => {
+const invoke = (worker: Worker, message: string, history: string, state: string) => {
   let prompt: string
   if (history === '') prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
   else prompt = `User: ${message}\n\nAssistant:`
@@ -180,7 +181,7 @@ const invoke = (message: string, history: string, state: string) => {
     vocab: '../assets/rwkv_vocab_v20230424.json',
     sampler: 'nucleus',
   }
-  window.chat_worker.postMessage(JSON.stringify(options))
+  worker.postMessage(JSON.stringify(options))
 }
 
 const Info = () => {
@@ -197,6 +198,7 @@ const Info = () => {
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
   const [, setStateKey] = useRecoilState(P.stateKey)
   const [, setStateValue] = useRecoilState(P.stateValue)
+  const worker = useRecoilValue(P.worker)
 
   setStateKey(new Date().toUTCString())
   setStateValue(undefined)
@@ -218,7 +220,7 @@ const Info = () => {
         setLoadedLength(loadedLength)
       }
     )
-    await setupWorker(chunks, 'chat')
+    await setupWorker(worker, chunks, 'chat')
     setLoading(false)
     setLoaded(true)
   }

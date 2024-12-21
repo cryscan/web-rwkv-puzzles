@@ -65,7 +65,7 @@ function Puzzle() {
     if (initializeRef.current) return
     initializeRef.current = true
 
-    window.onPuzzleMessageReceived = onWorkerMessageReceived
+    window.puzzle = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
 
     const gpu = navigator.gpu
@@ -304,6 +304,7 @@ const Row = (options: { rowIndex: number; data: number[] }) => {
 }
 
 const Controls = () => {
+  const worker = useRecoilValue(P.worker)
   const [displayState, setDisplayState] = useRecoilState(P.displayState)
   const [board, setBoard] = useRecoilState(P.board)
   const [moves, setMoves] = useRecoilState(P.moves)
@@ -331,18 +332,13 @@ const Controls = () => {
     }
 
     const chunks = await loadData('puzzle', P.modelUrl, '')
-    await setupWorker(chunks, 'puzzle')
-
-    if (!window.puzzle_worker) {
-      alert('Please load the model first.')
-      return
-    }
+    await setupWorker(worker, chunks, 'puzzle')
 
     setMoves(0)
     setDisplayState('running')
     setTime(0)
     setLogs([])
-    invoke(board)
+    invoke(worker, board)
   }
 
   return (
@@ -369,7 +365,7 @@ const Controls = () => {
   )
 }
 
-const invoke = (board: number[]) => {
+const invoke = (worker: Worker, board: number[]) => {
   const options = {
     task: 'puzzle',
     max_len: 1000000,
@@ -385,7 +381,7 @@ const invoke = (board: number[]) => {
     vocab: '../assets/puzzle15_vocab.json',
     sampler: 'simple',
   }
-  window.puzzle_worker.postMessage(JSON.stringify(options))
+  worker.postMessage(JSON.stringify(options))
 }
 
 const Cell = (options: {

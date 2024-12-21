@@ -1,4 +1,9 @@
-import { atom, selector } from 'recoil'
+import { atom, RecoilState, selector } from 'recoil'
+
+const worker = atom({
+  key: 'chat_worker',
+  default: new Worker('llm/worker.js')
+})
 
 const modelLoaded = atom({
   key: 'modelLoaded',
@@ -56,6 +61,7 @@ const remoteKey = atom({
 })
 
 export const P = {
+  worker,
   modelLoaded,
   modelLoading,
   loaded,

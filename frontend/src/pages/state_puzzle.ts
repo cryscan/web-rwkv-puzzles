@@ -1,5 +1,10 @@
 import { atom, selector } from 'recoil'
 
+const worker = atom({
+  key: 'puzzle_worker',
+  default: new Worker('llm/worker.js')
+})
+
 const displayState = atom<'none' | 'loading' | 'loaded' | 'running'>({
   key: 'displayState',
   default: 'none',
@@ -45,6 +50,7 @@ var logTemp: string = ''
 var modelUrl = './assets/models/rwkv-puzzle15.st'
 
 export const P = {
+  worker,
   modelUrl,
   board,
   displayState,

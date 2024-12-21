@@ -1,25 +1,24 @@
 export async function setupWorker(
+  worker: Worker,
   chunks: Uint8Array[],
   type: 'puzzle' | 'chat'
 ) {
-  console.log('🔄 Loading worker')
-  var worker = new Worker('llm/worker.js')
-  console.log('✅ Worker loaded')
+  // console.log('🔄 Loading worker')
+  // var worker = new Worker('llm/worker.js')
+  // console.log('✅ Worker loaded')
 
   switch (type) {
     case 'chat':
-      window.chat_worker = worker
       worker.onmessage = (e) => {
         const { data } = e
-        try { window.onChatMessageReceived(data) }
+        try { window.chat(data) }
         catch (e) { console.error(e) }
       }
       break
     case 'puzzle':
-      window.puzzle_worker = worker
       worker.onmessage = (e) => {
         const { data } = e
-        try { window.onPuzzleMessageReceived(data) }
+        try { window.puzzle(data) }
         catch (e) { console.error(e) }
       }
       break
