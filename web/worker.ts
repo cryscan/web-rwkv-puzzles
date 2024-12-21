@@ -77,10 +77,10 @@ if ('function' === typeof importScripts) {
       await session.run(tokens, logits)
 
       switch (session.session_type()) {
-        case wasm_bindgen.SessionType.Puzzle:
+        case SessionType.Puzzle:
           probs = logits
           break
-        case wasm_bindgen.SessionType.Chat:
+        case SessionType.Chat:
           sampler.transform(logits)
           await session.softmax(logits, probs)
           break
