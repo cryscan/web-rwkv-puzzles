@@ -27,7 +27,7 @@ pub enum SessionType {
 }
 
 /// We need to slightly modify the model structure using hooks.
-fn make_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
+fn make_puzzle_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
     let mut hooks = v6::HookMap::new();
     for layer in 0..info.num_layer {
         // add a custom operation before time-mix for each layer
@@ -76,7 +76,7 @@ impl Session {
         let builder = ModelBuilder::new(&context, model).quant(quant);
         let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
-                let hooks = make_hooks(&info)?;
+                let hooks = make_puzzle_hooks(&info)?;
                 let model = builder.build_v6().await?;
                 let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
                 let state = bundle.state();
