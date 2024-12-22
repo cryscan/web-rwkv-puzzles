@@ -106,17 +106,6 @@ const Info = () => {
         support it before running (See{' '}
         <a href='https://webgpureport.org/' target='_blank'>
           WebGPU Report
-          <svg
-            width='12'
-            height='12'
-            viewBox='0 0 12 12'
-            style={{ marginLeft: '4px' }}
-          >
-            <path
-              fill='currentColor'
-              d='M2.5 2v2h5.293L1 10.793 2.207 12 9 5.207V10.5h2V2z'
-            />
-          </svg>
         </a>
         ).
       </div>

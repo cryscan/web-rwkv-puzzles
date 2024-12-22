@@ -148,7 +148,7 @@ const Chat = () => {
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        height: '92vh',
+        height: '100vh',
       }}
     >
       {!hasMessages && <Info />}
@@ -354,6 +354,14 @@ const Info = () => {
           Web-RWKV
         </a>
         , so no data is sent to a server. Once loaded, it can be used offline.
+      </div>
+      <div style={{ maxWidth: 410, textAlign: 'left' }}>
+        Note that this demo runs on WebGPU so make sure that your browser
+        support it before running (See{' '}
+        <a href='https://webgpureport.org/' target='_blank'>
+          WebGPU Report
+        </a>
+        ).
       </div>
       <div style={{ maxWidth: 410, textAlign: 'left' }}>
         Disclaimer: This model handles general knowledge, creative writing, and

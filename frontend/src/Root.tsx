@@ -71,8 +71,8 @@ const Root: React.FC = () => {
           </Routes>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          <Link href='https://beian.miit.gov.cn/'>粤ICP备2024242518号-1</Link> ©
-          2024 RWKV CN. All Rights Reserved.
+          {/* <Link href='https://beian.miit.gov.cn/'>粤ICP备2024242518号-1</Link> ©
+          2024 RWKV CN. All Rights Reserved. */}
         </Footer>
       </Layout>
     </Layout>
