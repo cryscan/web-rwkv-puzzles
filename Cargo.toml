@@ -18,6 +18,7 @@ wasm-opt = false
 
 [dependencies]
 anyhow = "1"
+base64 = "0.22.1"
 bitflags = "2.6"
 bytemuck = { version = "1.17", features = ["extern_crate_alloc"] }
 derive-getters = "0.5"
@@ -25,6 +26,7 @@ fastrand = { version = "2.1", features = ['js'] }
 flume = "0.11"
 futures = "0.3.31"
 half = { version = "2.4", features = ["bytemuck"] }
+image = "0.25.5"
 itertools = "0.13"
 js-sys = "0.3"
 lazy_static = "1.5"

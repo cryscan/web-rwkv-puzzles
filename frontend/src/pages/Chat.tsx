@@ -7,10 +7,10 @@ import {
   useXChat,
 } from '@ant-design/x'
 import { BarChartOutlined, BulbOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Drawer, Flex, FloatButton, Progress, type GetProp } from 'antd'
+import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Tabs, type GetProp } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { P } from './state_chat'
-import { SetterOrUpdater, useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
@@ -45,6 +45,13 @@ const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
 
+  interface StateVisual {
+    num_layer: number
+    num_head: number
+    stats: StateHeadStats[]
+    images: string[][]
+  }
+
   interface StateHeadStats {
     layer: number
     head: number
@@ -53,14 +60,17 @@ const Chat = () => {
 
   const worker = useRecoilValue(P.worker)
   const stateKey = useRecoilValue(P.stateKey)
-  const [stateValue, setStateValue] = useState<null | StateHeadStats[]>(null)
+  const [stateValue, setStateValue] = useState<null | Float32Array>(null)
+  const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
     switch (event.type) {
       case 'state':
         console.log('✅ State updated')
-        setStateValue(event.stats)
+        const { state, visual } = event
+        setStateValue(state)
+        setStateVisual(visual)
         break
       case 'token':
         const { word, token } = event
@@ -98,7 +108,7 @@ const Chat = () => {
     agent,
   })
 
-  const stateStats = () => stateValue!.flatMap((x) => {
+  const processStateStats = () => stateVisual!.stats.flatMap((x) => {
     return [
       { layer: x.layer, head: x.head, value: x.bins[0] },
       { layer: x.layer, head: x.head, value: x.bins[1] },
@@ -107,11 +117,21 @@ const Chat = () => {
       { layer: x.layer, head: x.head, value: x.bins[4] },
     ]
   })
+  const processStateImages = () => stateVisual!.images.map((line) =>
+    <Row>{
+      line.map((code) =>
+        <Col>
+          <Image
+            width={64}
+            src={`data:image/png;base64,${code}`}
+          />
+        </Col>)
+    }</Row>)
 
   const hasMessages = messages.length > 0
-  const hasState = stateValue !== null
+  const hasStateVisual = stateVisual !== null
   const [loaded] = useRecoilState(P.loaded)
-  const [stateStatsOpen, setStateStatsOpen] = useState(false)
+  const [stateVisualOpen, setStateVisualOpen] = useState(false)
 
   return (
     <Flex
@@ -174,26 +194,41 @@ const Chat = () => {
       <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
         Disclaimer: Generated content may be inaccurate or false.
       </div>
-      {loaded && hasState && (
+      {loaded && hasStateVisual && (
         <FloatButton
           icon={<BarChartOutlined />}
-          onClick={() => setStateStatsOpen(true)}
+          onClick={() => setStateVisualOpen(true)}
         />)}
-      {loaded && hasState && (
+      {loaded && hasStateVisual && (
         <Drawer
-          title='State Statistics'
+          title='State Visualizer'
           size='large'
           placement='bottom'
-          onClose={() => setStateStatsOpen(false)}
+          onClose={() => setStateVisualOpen(false)}
           destroyOnClose={true}
-          open={stateStatsOpen}>
-          <Violin
-            violinType='normal'
-            data={stateStats()}
-            xField='head'
-            yField='value'
-            seriesField='layer'
+          open={stateVisualOpen}>
+          <Tabs
+            defaultActiveKey='1'
+            items={[
+              {
+                key: '1',
+                label: 'Statistics',
+                children: <Violin
+                  violinType='normal'
+                  data={processStateStats()}
+                  xField='head'
+                  yField='value'
+                  seriesField='layer'
+                />
+              },
+              {
+                key: '2',
+                label: 'Images',
+                children: <>{processStateImages()}</>
+              }
+            ]}
           />
+
         </Drawer>
       )}
     </Flex>

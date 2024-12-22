@@ -2,7 +2,7 @@ if ('function' === typeof importScripts) {
   importScripts('common.js')
   importScripts('web_rwkv_puzzles.js')
 
-  const { Session, SessionType, StateStats, NucleusSampler, SimpleSampler, Tensor, TensorReader } = wasm_bindgen
+  const { Session, SessionType, StateVisual, NucleusSampler, SimpleSampler, Tensor, TensorReader } = wasm_bindgen
 
   interface TensorInfo {
     shape: Uint32Array
@@ -176,8 +176,8 @@ if ('function' === typeof importScripts) {
     await session.back(state)
     _states.set(state_key, state)
 
-    const stats = JSON.parse(new StateStats(info, state).to_json())
-    window.postMessage({ type: 'state', state, stats })
+    const visual = JSON.parse(new StateVisual(info, state).json())
+    window.postMessage({ type: 'state', state, visual })
   }
 
   this.addEventListener(
