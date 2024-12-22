@@ -6,7 +6,7 @@ import {
   useXAgent,
   useXChat,
 } from '@ant-design/x'
-import { BarChartOutlined, BulbOutlined, UserOutlined } from '@ant-design/icons'
+import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, UserOutlined } from '@ant-design/icons'
 import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Tabs, type GetProp } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { P } from './state_chat'
@@ -108,7 +108,7 @@ const Chat = () => {
     agent,
   })
 
-  const processStateStats = () => stateVisual!.stats.flatMap((x) => {
+  const renderStateStats = () => stateVisual!.stats.flatMap((x) => {
     return [
       { layer: x.layer, head: x.head, value: x.bins[0] },
       { layer: x.layer, head: x.head, value: x.bins[1] },
@@ -117,7 +117,7 @@ const Chat = () => {
       { layer: x.layer, head: x.head, value: x.bins[4] },
     ]
   })
-  const processStateImages = () => stateVisual!.images.map((line, layer) =>
+  const renderStateImages = () => stateVisual!.images.map((line, layer) =>
     <Row>
       <Col span={1}>Layer {layer}</Col>
       {
@@ -135,6 +135,7 @@ const Chat = () => {
   const hasStateVisual = stateVisual !== null
   const [loaded] = useRecoilState(P.loaded)
   const [stateVisualOpen, setStateVisualOpen] = useState(false)
+  const [stateVisualFull, setStateVisualFull] = useState(false)
 
   return (
     <Flex
@@ -195,7 +196,9 @@ const Chat = () => {
         }}
       />
       <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
-        Disclaimer: Generated content may be inaccurate or false.
+        Disclaimer: This model handles general knowledge, creative writing, and
+        basic Python. It may struggle with arithmetic, editing, and complex
+        reasoning.
       </div>
       {loaded && hasStateVisual && (
         <FloatButton
@@ -205,11 +208,18 @@ const Chat = () => {
       {loaded && hasStateVisual && (
         <Drawer
           title='State Visualizer'
-          size='large'
+          height={stateVisualFull ? '100vh' : 738}
           placement='bottom'
           onClose={() => setStateVisualOpen(false)}
           destroyOnClose={true}
-          open={stateVisualOpen}>
+          open={stateVisualOpen}
+          extra={
+            <Button
+              icon={stateVisualFull ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+              onClick={() => setStateVisualFull(!stateVisualFull)}
+            />
+          }
+        >
           <Tabs
             defaultActiveKey='1'
             items={[
@@ -218,7 +228,7 @@ const Chat = () => {
                 label: 'Statistics',
                 children: <Violin
                   violinType='normal'
-                  data={processStateStats()}
+                  data={renderStateStats()}
                   xField='head'
                   yField='value'
                   seriesField='layer'
@@ -227,7 +237,7 @@ const Chat = () => {
               {
                 key: '2',
                 label: 'Images',
-                children: <>{processStateImages()}</>
+                children: <>{renderStateImages()}</>
               }
             ]}
           />
