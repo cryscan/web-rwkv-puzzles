@@ -53,7 +53,7 @@ const Chat = () => {
     switch (event.type) {
       case 'state':
         console.log('✅ State updated')
-        setStateValue(event.state)
+        setStateValue(event.state_data)
         break
       case 'token':
         const { word, token } = event
@@ -122,7 +122,7 @@ const Chat = () => {
           }))}
         />
       )}
-      {loaded && messages.length == 0 && (
+      {loaded && !hasMessages && (
         <Prompts
           title='✨ Inspirational Sparks and Marvelous Tips'
           items={items}
@@ -193,7 +193,7 @@ const Info = () => {
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.loaded)
-  const [progress, setProgress] = useRecoilState(P.loadedProgress)
+  const [progress] = useRecoilState(P.loadedProgress)
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
   const [, setStateKey] = useRecoilState(P.stateKey)
