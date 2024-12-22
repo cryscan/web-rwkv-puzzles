@@ -7,12 +7,13 @@ import {
   useXChat,
 } from '@ant-design/x'
 import { BarChartOutlined, BulbOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Flex, FloatButton, Progress, type GetProp } from 'antd'
-import React, { useEffect } from 'react'
+import { Button, Drawer, Flex, FloatButton, Progress, type GetProp } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
+import { Violin } from '@ant-design/charts'
 
 const stop = 24281 // User
 
@@ -93,8 +94,8 @@ const Chat = () => {
 
   const hasMessages = messages.length > 0
   const hasState = stateValue !== undefined
-
   const [loaded] = useRecoilState(P.loaded)
+  const [stateStatsOpen, setStateStatsOpen] = useState(false)
 
   return (
     <Flex
@@ -157,7 +158,28 @@ const Chat = () => {
       <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
         Disclaimer: Generated content may be inaccurate or false.
       </div>
-      {loaded && hasState && <FloatButton icon={<BarChartOutlined />} />}
+      {loaded && hasState && (
+        <FloatButton
+          icon={<BarChartOutlined />}
+          onClick={() => setStateStatsOpen(true)}
+        />)}
+      {loaded && hasState && (
+        <Drawer
+          title='State Statistics'
+          size='large'
+          placement='bottom'
+          onClose={() => setStateStatsOpen(false)}
+          destroyOnClose={true}
+          open={stateStatsOpen}>
+          <Violin
+            violinType='normal'
+            data={stateValue}
+            xField='head'
+            yField='value'
+            seriesField='layer'
+          />
+        </Drawer>
+      )}
     </Flex>
   )
 }
