@@ -117,16 +117,19 @@ const Chat = () => {
       { layer: x.layer, head: x.head, value: x.bins[4] },
     ]
   })
-  const processStateImages = () => stateVisual!.images.map((line) =>
-    <Row>{
-      line.map((code) =>
-        <Col>
-          <Image
-            width={64}
-            src={`data:image/png;base64,${code}`}
-          />
-        </Col>)
-    }</Row>)
+  const processStateImages = () => stateVisual!.images.map((line, layer) =>
+    <Row>
+      <Col span={1}>Layer {layer}</Col>
+      {
+        line.map((code) =>
+          <Col span={1}>
+            <Image
+              width={64}
+              src={`data:image/png;base64,${code}`}
+            />
+          </Col>)
+      }
+    </Row>)
 
   const hasMessages = messages.length > 0
   const hasStateVisual = stateVisual !== null
