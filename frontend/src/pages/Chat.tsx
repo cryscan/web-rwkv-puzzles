@@ -10,7 +10,7 @@ import { BarChartOutlined, BulbOutlined, UserOutlined } from '@ant-design/icons'
 import { Button, Drawer, Flex, FloatButton, Progress, type GetProp } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { P } from './state_chat'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { SetterOrUpdater, useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
@@ -45,16 +45,22 @@ const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
 
+  interface StateHeadStats {
+    layer: number
+    head: number
+    bins: number[]
+  }
+
   const worker = useRecoilValue(P.worker)
   const stateKey = useRecoilValue(P.stateKey)
-  const [stateValue, setStateValue] = useRecoilState(P.stateValue)
+  const [stateValue, setStateValue] = useState<null | StateHeadStats[]>(null)
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
     switch (event.type) {
       case 'state':
         console.log('✅ State updated')
-        setStateValue(event.state_data)
+        setStateValue(event.stats)
         break
       case 'token':
         const { word, token } = event
@@ -92,8 +98,18 @@ const Chat = () => {
     agent,
   })
 
+  const stateStats = () => stateValue!.flatMap((x) => {
+    return [
+      { layer: x.layer, head: x.head, value: x.bins[0] },
+      { layer: x.layer, head: x.head, value: x.bins[1] },
+      { layer: x.layer, head: x.head, value: x.bins[2] },
+      { layer: x.layer, head: x.head, value: x.bins[3] },
+      { layer: x.layer, head: x.head, value: x.bins[4] },
+    ]
+  })
+
   const hasMessages = messages.length > 0
-  const hasState = stateValue !== undefined
+  const hasState = stateValue !== null
   const [loaded] = useRecoilState(P.loaded)
   const [stateStatsOpen, setStateStatsOpen] = useState(false)
 
@@ -173,7 +189,7 @@ const Chat = () => {
           open={stateStatsOpen}>
           <Violin
             violinType='normal'
-            data={stateValue}
+            data={stateStats()}
             xField='head'
             yField='value'
             seriesField='layer'
@@ -219,11 +235,9 @@ const Info = () => {
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
   const [, setStateKey] = useRecoilState(P.stateKey)
-  const [, setStateValue] = useRecoilState(P.stateValue)
   const worker = useRecoilValue(P.worker)
 
   setStateKey(new Date().toUTCString())
-  setStateValue(undefined)
 
   const onClickLoadModel = async () => {
     setLoading(true)
