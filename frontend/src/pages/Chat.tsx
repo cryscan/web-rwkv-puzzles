@@ -252,7 +252,8 @@ const Chat = () => {
 const invoke = (worker: Worker, message: string, history: string, state: string) => {
   let prompt: string
   if (history === '') prompt = `User: Hi!\n\nAssistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.\n\nUser: ${message}\n\nAssistant:`
-  else prompt = `User: ${message}\n\nAssistant:`
+  else if (history.length >= 2 && history.slice(-2) === '\n\n') prompt = `User: ${message}\n\nAssistant:`
+  else prompt = `\n\nUser: ${message}\n\nAssistant:`
 
   const options = {
     task: 'chat',
