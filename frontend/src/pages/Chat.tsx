@@ -15,7 +15,7 @@ import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
 
-const stop = 24281 // User
+const stop = [24281, 0, 82] // User, Q
 
 const items: PromptsProps['items'] = [
   {
@@ -74,7 +74,7 @@ const Chat = () => {
         break
       case 'token':
         const { word, token } = event
-        if (token === stop) {
+        if (stop.includes(token)) {
           console.log(llmContent.current)
           window.onSuccessBinding(llmContent.current)
         } else {
@@ -259,7 +259,7 @@ const invoke = (worker: Worker, message: string, history: string, state: string)
     max_len: 500,
     prompt,
     state_key: state,
-    stop_tokens: [stop],
+    stop_tokens: stop,
     temperature: 1.0,
     top_p: 0.5,
     presence_penalty: 0.5,
