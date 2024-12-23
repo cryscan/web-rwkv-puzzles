@@ -11,7 +11,7 @@ use web_rwkv::runtime::model::{ModelInfo, ModelVersion};
 struct StateStats {
     layer: usize,
     head: usize,
-    bins: [f32; 5],
+    bins: [f32; 7],
 }
 
 #[wasm_bindgen]
@@ -73,13 +73,17 @@ impl StateVisual {
                 let p2 = (p0 + p4) / 2;
                 let p1 = (p0 + p2) / 2;
                 let p3 = (p2 + p4) / 2;
+                let p_005 = ((p4 as f32) * 0.005) as usize;
+                let p_995 = ((p4 as f32) * 0.995) as usize;
 
                 let min = values[p0];
                 let max = values[p4];
                 let q1 = (values[p1] + values[p1 + 1]) / 2.0;
                 let q2 = (values[p2] + values[p2 + 1]) / 2.0;
                 let q3 = (values[p3] + values[p3 + 1]) / 2.0;
-                let bins = [min, q1, q2, q3, max];
+                let q_005 = (values[p_005] + values[p_005 + 1]) / 2.0;
+                let q_995 = (values[p_995] + values[p_995 + 1]) / 2.0;
+                let bins = [min, q_005, q1, q2, q3, q_995, max];
                 ((layer, head), bins)
             })
             .collect();
@@ -126,7 +130,7 @@ impl StateVisual {
                 let h = head_size as u32;
                 const SCALE: u32 = 4;
 
-                let [q0, q1, _, q3, q4] = bins;
+                let [_, q0, q1, _, q3, q4, _] = bins;
                 let r13 = (q3 - q1).max(f32::EPSILON);
                 let r04 = (q4 - q0).max(f32::EPSILON);
 

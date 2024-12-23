@@ -7,7 +7,7 @@ import {
   useXChat,
 } from '@ant-design/x'
 import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Slider, Tabs, type GetProp } from 'antd'
+import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Slider, Switch, Tabs, type GetProp } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -254,6 +254,14 @@ const Chat = () => {
     agent,
   })
 
+  const hasMessages = messages.length > 0
+  const hasStateVisual = stateVisual !== null
+  const [loaded] = useRecoilState(P.loaded)
+  const [stateVisualOpen, setStateVisualOpen] = useState(false)
+  const [stateVisualFull, setStateVisualFull] = useState(false)
+  const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
+  const [samplerOptionsOpen, setSamplerOptionsOpen] = useState(false)
+
   const renderMessages = () => messages.map((message) => ({
     key: message.id,
     role: message.status === 'local' ? 'local' : 'ai',
@@ -261,11 +269,11 @@ const Chat = () => {
   }));
   const renderStateStats = () => stateVisual!.stats.flatMap((x) => {
     return [
-      { layer: x.layer, head: x.head, value: x.bins[0] },
-      { layer: x.layer, head: x.head, value: x.bins[1] },
+      { layer: x.layer, head: x.head, value: x.bins[stateStatsOutliers ? 0 : 1] },
       { layer: x.layer, head: x.head, value: x.bins[2] },
       { layer: x.layer, head: x.head, value: x.bins[3] },
       { layer: x.layer, head: x.head, value: x.bins[4] },
+      { layer: x.layer, head: x.head, value: x.bins[stateStatsOutliers ? 6 : 5] },
     ]
   })
   const renderStateImages = () => stateVisual!.images.map((line, layer) =>
@@ -282,13 +290,6 @@ const Chat = () => {
         }
       </Col>
     </Row>)
-
-  const hasMessages = messages.length > 0
-  const hasStateVisual = stateVisual !== null
-  const [loaded] = useRecoilState(P.loaded)
-  const [stateVisualOpen, setStateVisualOpen] = useState(false)
-  const [stateVisualFull, setStateVisualFull] = useState(false)
-  const [samplerOptionsOpen, setSamplerOptionsOpen] = useState(false)
 
   return (
     <Flex
@@ -391,13 +392,21 @@ const Chat = () => {
               {
                 key: '1',
                 label: 'Statistics',
-                children: <Violin
-                  violinType='normal'
-                  data={renderStateStats()}
-                  xField='head'
-                  yField='value'
-                  seriesField='layer'
-                />
+                children: <>
+                  <Switch
+                    value={stateStatsOutliers}
+                    checkedChildren='Include Outliers'
+                    unCheckedChildren='Exclude Outliers'
+                    onChange={(value) => setStateStatsOutliers(value)}
+                  />
+                  <Violin
+                    violinType='normal'
+                    data={renderStateStats()}
+                    xField='head'
+                    yField='value'
+                    seriesField='layer'
+                  />
+                </>
               },
               {
                 key: '2',
