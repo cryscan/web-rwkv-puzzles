@@ -8,7 +8,7 @@ import {
 } from '@ant-design/x'
 import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, UserOutlined } from '@ant-design/icons'
 import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Tabs, type GetProp } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
@@ -59,7 +59,7 @@ const Chat = () => {
   }
 
   const worker = useRecoilValue(P.worker)
-  const stateKey = useRecoilValue(P.stateKey)
+  const stateKey = useRef(new Date().toUTCString())
   const [stateValue, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
@@ -97,7 +97,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(worker, message, llmContent.current, stateKey)
+      invoke(worker, message, llmContent.current, stateKey.current)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -120,15 +120,16 @@ const Chat = () => {
   const renderStateImages = () => stateVisual!.images.map((line, layer) =>
     <Row>
       <Col span={1}>Layer {layer}</Col>
-      {
-        line.map((code) =>
-          <Col span={1}>
+      <Col span={23}>
+        {
+          line.map((code) =>
             <Image
               width={64}
               src={`data:image/png;base64,${code}`}
             />
-          </Col>)
-      }
+          )
+        }
+      </Col>
     </Row>)
 
   const hasMessages = messages.length > 0
@@ -282,10 +283,7 @@ const Info = () => {
   const [progress] = useRecoilState(P.loadedProgress)
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
-  const [, setStateKey] = useRecoilState(P.stateKey)
   const worker = useRecoilValue(P.worker)
-
-  setStateKey(new Date().toUTCString())
 
   const onClickLoadModel = async () => {
     setLoading(true)
