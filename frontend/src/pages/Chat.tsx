@@ -232,6 +232,13 @@ const Chat = () => {
     agent,
   })
 
+  const renderMessages = () => messages.flatMap((message) => {
+    return message.message.trim().split('\n').map((line, index) => ({
+      key: `${message.id}_${index}`,
+      role: message.status === 'local' ? 'local' : 'ai',
+      content: line
+    }))
+  });
   const renderStateStats = () => stateVisual!.stats.flatMap((x) => {
     return [
       { layer: x.layer, head: x.head, value: x.bins[0] },
@@ -281,11 +288,7 @@ const Chat = () => {
         <Bubble.List
           style={{ flex: 1 }}
           roles={roles}
-          items={messages.map(({ id, message, status }) => ({
-            key: id,
-            role: status === 'local' ? 'local' : 'ai',
-            content: message,
-          }))}
+          items={renderMessages()}
         />
       )}
       {loaded && !hasMessages && (
