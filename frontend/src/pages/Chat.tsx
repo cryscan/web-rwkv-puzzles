@@ -14,6 +14,7 @@ import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
+import Markdown from 'react-markdown'
 
 const llmPrompt = `User: Hi!
 
@@ -232,13 +233,11 @@ const Chat = () => {
     agent,
   })
 
-  const renderMessages = () => messages.flatMap((message) => {
-    return message.message.trim().split('\n').map((line, index) => ({
-      key: `${message.id}_${index}`,
-      role: message.status === 'local' ? 'local' : 'ai',
-      content: line
-    }))
-  });
+  const renderMessages = () => messages.map((message) => ({
+    key: message.id,
+    role: message.status === 'local' ? 'local' : 'ai',
+    content: <Markdown>{message.message}</Markdown>
+  }));
   const renderStateStats = () => stateVisual!.stats.flatMap((x) => {
     return [
       { layer: x.layer, head: x.head, value: x.bins[0] },
