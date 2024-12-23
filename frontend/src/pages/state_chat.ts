@@ -1,4 +1,4 @@
-import { atom, RecoilState } from 'recoil'
+import { atom } from 'recoil'
 
 const worker = atom({
   key: 'chat_worker',

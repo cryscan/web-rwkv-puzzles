@@ -9,7 +9,7 @@ if ('function' === typeof importScripts) {
     data_offsets: [number, number]
   }
 
-  interface Option {
+  interface Options {
     max_len: number
     prompt: string
     state_key: string
@@ -123,7 +123,8 @@ if ('function' === typeof importScripts) {
       return
     }
 
-    const options: Option = JSON.parse(message)
+    const options: Options = JSON.parse(message)
+    console.log(options)
 
     const max_len = options.max_len
     const prompt = options.prompt

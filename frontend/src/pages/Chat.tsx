@@ -6,8 +6,8 @@ import {
   useXAgent,
   useXChat,
 } from '@ant-design/x'
-import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Tabs, type GetProp } from 'antd'
+import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons'
+import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Slider, Tabs, type GetProp } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -16,7 +16,28 @@ import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
 import Markdown from 'react-markdown'
 
-const llmPrompt = `User: Hi!
+interface SamplerOptions {
+  temperature: number
+  top_p: number
+  presence_penalty: number
+  count_penalty: number
+  half_life: number
+}
+
+interface StateVisual {
+  num_layer: number
+  num_head: number
+  stats: StateHeadStats[]
+  images: string[][]
+}
+
+interface StateHeadStats {
+  layer: number
+  head: number
+  bins: number[]
+}
+
+const assistant = `User: Hi!
 
 Assistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.
 
@@ -140,7 +161,7 @@ User: Generate a unique metaphor for a heavy person.
 
 Assistant: He was a human boulder, immovable and taking up a large amount of space.`
 
-const stop = [24281, 0, 82] // User, Q
+const stops = [24281, 0, 82] // User, Q
 
 const items: PromptsProps['items'] = [
   {
@@ -170,23 +191,23 @@ const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
 
-  interface StateVisual {
-    num_layer: number
-    num_head: number
-    stats: StateHeadStats[]
-    images: string[][]
-  }
-
-  interface StateHeadStats {
-    layer: number
-    head: number
-    bins: number[]
-  }
-
   const worker = useRecoilValue(P.worker)
   const stateKey = useRef(new Date().toUTCString())
-  const [stateValue, setStateValue] = useState<null | Float32Array>(null)
+  const [, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
+
+  const [samplerOptions, setSamplerOptions] = useState({
+    temperature: 2.0,
+    top_p: 0.5,
+    presence_penalty: 0.5,
+    count_penalty: 0.5,
+    half_life: 200,
+  })
+  const samplerOptionsRef = useRef(samplerOptions)
+  const updateSamplerOptions = (updated: SamplerOptions) => {
+    setSamplerOptions(updated)
+    samplerOptionsRef.current = updated
+  }
 
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -199,7 +220,7 @@ const Chat = () => {
         break
       case 'token':
         const { word, token } = event
-        if (stop.includes(token)) {
+        if (stops.includes(token)) {
           console.log(llmContent.current)
           window.onSuccessBinding(llmContent.current)
         } else {
@@ -211,7 +232,7 @@ const Chat = () => {
   }
 
   const initializeApp = () => {
-    window.chat = onWorkerMessageReceived;
+    window.chat = onWorkerMessageReceived
   }
 
   useEffect(() => {
@@ -222,7 +243,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(worker, message, llmContent.current, stateKey.current)
+      invoke(worker, message, llmContent.current, stateKey.current, samplerOptionsRef.current)
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -267,6 +288,7 @@ const Chat = () => {
   const [loaded] = useRecoilState(P.loaded)
   const [stateVisualOpen, setStateVisualOpen] = useState(false)
   const [stateVisualFull, setStateVisualFull] = useState(false)
+  const [samplerOptionsOpen, setSamplerOptionsOpen] = useState(false)
 
   return (
     <Flex
@@ -283,14 +305,16 @@ const Chat = () => {
       }}
     >
       {!hasMessages && <Info />}
-      {hasMessages && (
+      {
+        hasMessages &&
         <Bubble.List
           style={{ flex: 1 }}
           roles={roles}
           items={renderMessages()}
         />
-      )}
-      {loaded && !hasMessages && (
+      }
+      {
+        loaded && !hasMessages &&
         <Prompts
           title='✨ Inspirational Sparks and Marvelous Tips'
           items={items}
@@ -303,7 +327,7 @@ const Chat = () => {
           }}
           wrap
         />
-      )}
+      }
       <Sender
         disabled={!loaded}
         loading={agent.isRequesting()}
@@ -327,12 +351,26 @@ const Chat = () => {
         basic Python. It may struggle with arithmetic, editing, and complex
         reasoning.
       </div>
-      {loaded && hasStateVisual && (
-        <FloatButton
-          icon={<BarChartOutlined />}
-          onClick={() => setStateVisualOpen(true)}
-        />)}
-      {loaded && hasStateVisual && (
+      {
+        <FloatButton.Group>
+          {
+            loaded && hasStateVisual &&
+            <FloatButton
+              icon={<BarChartOutlined />}
+              onClick={() => setStateVisualOpen(true)}
+            />
+          }
+          {
+            loaded &&
+            <FloatButton
+              icon={<SettingOutlined />}
+              onClick={() => setSamplerOptionsOpen(true)}
+            />
+          }
+        </FloatButton.Group>
+      }
+      {
+        loaded && hasStateVisual &&
         <Drawer
           title='State Visualizer'
           height={stateVisualFull ? '100vh' : 738}
@@ -368,30 +406,89 @@ const Chat = () => {
               }
             ]}
           />
-
         </Drawer>
-      )}
+      }
+      {
+        loaded &&
+        <Drawer
+          title='Sampler Options'
+          onClose={() => setSamplerOptionsOpen(false)}
+          open={samplerOptionsOpen}
+        >
+          <>
+            Temperature
+            <Slider
+              min={0}
+              max={5}
+              step={0.1}
+              onChange={(value) => updateSamplerOptions({ ...samplerOptions, temperature: value })}
+              value={samplerOptions.temperature}
+            />
+          </>
+          <>
+            Top P
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              onChange={(value) => updateSamplerOptions({ ...samplerOptions, top_p: value })}
+              value={samplerOptions.top_p}
+            />
+          </>
+          <>
+            Presence Penalty
+            <Slider
+              min={0}
+              max={5}
+              step={0.1}
+              onChange={(value) => updateSamplerOptions({ ...samplerOptions, presence_penalty: value })}
+              value={samplerOptions.presence_penalty}
+            />
+          </>
+          <>
+            Count Penalty
+            <Slider
+              min={0}
+              max={5}
+              step={0.1}
+              onChange={(value) => updateSamplerOptions({ ...samplerOptions, count_penalty: value })}
+              value={samplerOptions.count_penalty}
+            />
+          </>
+          <>
+            Penalty Half Life
+            <Slider
+              min={1}
+              max={2048}
+              step={1}
+              onChange={(value) => updateSamplerOptions({ ...samplerOptions, half_life: value })}
+              value={samplerOptions.half_life}
+            />
+          </>
+        </Drawer>
+      }
     </Flex>
   )
 }
 
-const invoke = (worker: Worker, message: string, history: string, state: string) => {
+const invoke = (worker: Worker, message: string, history: string, state: string, sampler: SamplerOptions) => {
   let prompt: string
-  if (history === '') prompt = `${llmPrompt}\n\nUser: ${message}\n\nAssistant:`
+  if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
   else if (history.length >= 2 && history.slice(-2) === '\n\n') prompt = `User: ${message}\n\nAssistant:`
   else prompt = `\n\nUser: ${message}\n\nAssistant:`
 
+  const { temperature, top_p, presence_penalty, count_penalty, half_life } = sampler
   const options = {
     task: 'chat',
     max_len: 2048,
     prompt,
     state_key: state,
-    stop_tokens: stop,
-    temperature: 1.0,
-    top_p: 0.5,
-    presence_penalty: 0.5,
-    count_penalty: 0.5,
-    penalty_decay: 0.996,
+    stop_tokens: stops,
+    temperature,
+    top_p,
+    presence_penalty,
+    count_penalty,
+    penalty_decay: Math.exp(-0.69314718 / Math.max(half_life, 1)),
     vocab: '../assets/rwkv_vocab_v20230424.json',
     sampler: 'nucleus',
   }
