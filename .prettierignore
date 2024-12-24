@@ -1,0 +1,5 @@
+frontend/public/llm/**
+web/**
+tsconfig.json
+pkg/**
+package.json
