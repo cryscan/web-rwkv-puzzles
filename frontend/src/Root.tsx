@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { BlockOutlined, MessageOutlined, CustomerServiceOutlined } from '@ant-design/icons'
+import {
+  BlockOutlined,
+  MessageOutlined,
+  CustomerServiceOutlined,
+} from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { App, Layout, Menu, theme } from 'antd'
 import Link from 'antd/es/typography/Link'
@@ -17,7 +21,7 @@ function getItem(
   label: React.ReactNode,
   key: React.Key,
   icon?: React.ReactNode,
-  children?: MenuItem[]
+  children?: MenuItem[],
 ): MenuItem {
   return {
     key,
@@ -35,7 +39,7 @@ const menuItems: MenuItem[] = [
 
 const Root: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
-  const { } = theme.useToken()
+  const {} = theme.useToken()
   const navigate = useNavigate()
   const currentPath = window.location.pathname.substring(1)
 

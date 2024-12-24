@@ -33,8 +33,8 @@ export const loadData = async (
 
   console.log('🔄 Performing network request to load model:\n', url)
   const response = await fetch(url, {
-    method: "GET",
-    headers: { "x-api-key": key }
+    method: 'GET',
+    headers: { 'x-api-key': key },
   })
   const reader = response.body!.getReader()
   const contentLength = +response.headers.get('Content-Length')!
