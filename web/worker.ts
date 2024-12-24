@@ -77,12 +77,17 @@ if ('function' === typeof importScripts) {
   }
 
   async function initTokenizer(url: string) {
+    if (_tokenizers.has(url)) return _tokenizers.get(url)!
+
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
     const req = await fetch(url)
     const vocab = await req.text()
     console.log(`📌 Tokenizer: ${vocab.length}`)
-    return new wasm_bindgen.Tokenizer(vocab)
+
+    const tokenizer = new wasm_bindgen.Tokenizer(vocab)
+    _tokenizers.set(url, tokenizer)
+    return tokenizer
   }
 
   async function initSession(blob: Blob) {
@@ -138,6 +143,7 @@ if ('function' === typeof importScripts) {
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
   var _init_state: undefined | Float32Array = undefined
   var _states: Map<string, Float32Array> = new Map()
+  var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
@@ -213,7 +219,11 @@ if ('function' === typeof importScripts) {
     _states.set(state_key, state)
 
     const visual = JSON.parse(new StateVisual(info, state).json())
-    window.postMessage({ type: 'state', state: new Float32Array(state), visual })
+    window.postMessage({
+      type: 'state',
+      state: new Float32Array(state),
+      visual,
+    })
   }
 
   async function replay(message: string, window: Window) {
@@ -245,15 +255,18 @@ if ('function' === typeof importScripts) {
 
     console.log(prompt)
     const tokens = tokenizer.encode(encoder.encode(prompt))
+    const total = tokens.length
 
     const logits = new Float32Array(info.num_vocab)
-    for (const token of tokens) {
+    for (const [index, token] of tokens.entries()) {
       const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
       await session.run(new Uint16Array([token]), logits)
       await session.back(state)
-      const visual = new StateVisual(info, state)
+      const visual = JSON.parse(new StateVisual(info, state).json())
       window.postMessage({
         type: 'replay',
+        index,
+        total,
         token,
         word,
         state: new Float32Array(state),

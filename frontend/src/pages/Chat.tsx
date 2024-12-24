@@ -9,11 +9,11 @@ import {
 import {
   BarChartOutlined,
   BulbOutlined,
-  FullscreenExitOutlined,
-  FullscreenOutlined,
   SettingOutlined,
   UserOutlined,
-  CloseOutlined,
+  RightOutlined,
+  UpOutlined,
+  DownOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -40,29 +40,9 @@ import { Violin } from '@ant-design/charts'
 import Markdown from 'react-markdown'
 import Sider from 'antd/es/layout/Sider'
 import { Typography } from 'antd'
+import { SamplerOptions, StateVisual } from '../func/gluon'
 
 const { Text, Title } = Typography
-
-interface SamplerOptions {
-  temperature: number
-  top_p: number
-  presence_penalty: number
-  count_penalty: number
-  half_life: number
-}
-
-interface StateVisual {
-  num_layer: number
-  num_head: number
-  stats: StateHeadStats[]
-  images: string[][]
-}
-
-interface StateHeadStats {
-  layer: number
-  head: number
-  bins: number[]
-}
 
 const assistant = `User: Hi!
 
@@ -260,6 +240,7 @@ const Chat = () => {
 
   const initializeApp = () => {
     window.chat = onWorkerMessageReceived
+    console.log('✅ Chat worker callback set')
   }
 
   useEffect(() => {
@@ -361,7 +342,6 @@ const Chat = () => {
             style={{ marginLeft: 24, marginRight: 24 }}
             onItemClick={(data) => {
               onRequest(data.data.description as string)
-              console.log(data)
               setContent('')
               llmContent.current = ''
             }}
@@ -417,13 +397,7 @@ const Chat = () => {
             open={stateVisualOpen}
             extra={
               <Button
-                icon={
-                  stateVisualFull ? (
-                    <FullscreenExitOutlined />
-                  ) : (
-                    <FullscreenOutlined />
-                  )
-                }
+                icon={stateVisualFull ? <DownOutlined /> : <UpOutlined />}
                 onClick={() => setStateVisualFull(!stateVisualFull)}
               />
             }
@@ -473,13 +447,14 @@ const Chat = () => {
         collapsedWidth={0}
         breakpoint='lg'
         collapsible
-        collapsed={sampleOptionsCollapsed}
+        collapsed={!loaded || sampleOptionsCollapsed}
         onCollapse={(value) => setSampleOptionsCollapsed(value)}
+        trigger={null}
       >
         <Flex justify='space-between' gap='middle'>
           <Title level={4}>Sampler Options</Title>
           <Button
-            icon={<CloseOutlined />}
+            icon={<RightOutlined />}
             onClick={() => setSampleOptionsCollapsed(!sampleOptionsCollapsed)}
           />
         </Flex>

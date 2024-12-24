@@ -1,4 +1,4 @@
-filepath: frontend/**
+filepath: frontend/** web/**
 jsxSingleQuote: true
 printWidth: 80
 semi: false
