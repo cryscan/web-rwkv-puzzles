@@ -499,8 +499,12 @@ const Chat = () => {
             }
           >
             <Flex gap={4} style={{ cursor: 'help' }}>
-              <Text>Temperature:</Text>
-              <Text>{samplerOptions.temperature}</Text>
+              <Col span={16}>
+                <Text>Temperature</Text>
+              </Col>
+              <Col span={8}>
+                <Text strong>{samplerOptions.temperature}</Text>
+              </Col>
             </Flex>
           </Popover>
           <Slider
@@ -527,8 +531,12 @@ const Chat = () => {
             }
           >
             <Flex gap={4} style={{ cursor: 'help' }}>
-              <Text>Top P:</Text>
-              <Text>{samplerOptions.top_p}</Text>
+              <Col span={16}>
+                <Text>Top P</Text>
+              </Col>
+              <Col span={8}>
+                <Text strong>{samplerOptions.top_p}</Text>
+              </Col>
             </Flex>
           </Popover>
           <Slider
@@ -554,8 +562,12 @@ const Chat = () => {
             }
           >
             <Flex gap={4} style={{ cursor: 'help' }}>
-              <Text>Presence Penalty:</Text>
-              <Text>{samplerOptions.presence_penalty}</Text>
+              <Col span={16}>
+                <Text>Presence Penalty</Text>
+              </Col>
+              <Col span={8}>
+                <Text strong>{samplerOptions.presence_penalty}</Text>
+              </Col>
             </Flex>
           </Popover>
           <Slider
@@ -583,8 +595,12 @@ const Chat = () => {
             }
           >
             <Flex gap={4} style={{ cursor: 'help' }}>
-              <Text>Count Penalty:</Text>
-              <Text>{samplerOptions.count_penalty}</Text>
+              <Col span={16}>
+                <Text>Count Penalty</Text>
+              </Col>
+              <Col span={8}>
+                <Text strong>{samplerOptions.count_penalty}</Text>
+              </Col>
             </Flex>
           </Popover>
           <Slider
@@ -611,8 +627,12 @@ const Chat = () => {
             }
           >
             <Flex gap={4} style={{ cursor: 'help' }}>
-              <Text>Penalty Half Life:</Text>
-              <Text>{samplerOptions.half_life}</Text>
+              <Col span={16}>
+                <Text>Penalty Half Life</Text>
+              </Col>
+              <Col span={8}>
+                <Text strong>{samplerOptions.half_life}</Text>
+              </Col>
             </Flex>
           </Popover>
           <Slider
