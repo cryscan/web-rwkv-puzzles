@@ -212,8 +212,9 @@ if ('function' === typeof importScripts) {
     await session.back(state)
     _states.set(state_key, state)
 
-    const visual = JSON.parse(new StateVisual(info, state).json())
-    window.postMessage({ type: 'state', state, visual })
+    const state_clone = new Float32Array(state)
+    const visual = JSON.parse(new StateVisual(info, state_clone).json())
+    window.postMessage({ type: 'state', state: state_clone, visual })
   }
 
   async function replay(message: string, window: Window) {
@@ -252,7 +253,14 @@ if ('function' === typeof importScripts) {
       await session.run(new Uint16Array([token]), logits)
       await session.back(state)
       const state_clone = new Float32Array(state)
-      window.postMessage({ type: 'replay', token, word, state: state_clone })
+      const visual = new StateVisual(info, state_clone)
+      window.postMessage({
+        type: 'replay',
+        token,
+        word,
+        state: state_clone,
+        visual,
+      })
     }
 
     window.postMessage({ type: 'replay_end' })
