@@ -6,8 +6,31 @@ import {
   useXAgent,
   useXChat,
 } from '@ant-design/x'
-import { BarChartOutlined, BulbOutlined, FullscreenExitOutlined, FullscreenOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Col, Drawer, Flex, FloatButton, Image, Progress, Row, Slider, Switch, Tabs, type GetProp } from 'antd'
+import {
+  BarChartOutlined,
+  BulbOutlined,
+  FullscreenExitOutlined,
+  FullscreenOutlined,
+  SettingOutlined,
+  UserOutlined,
+  CloseOutlined,
+} from '@ant-design/icons'
+import {
+  Button,
+  Col,
+  Drawer,
+  Flex,
+  FloatButton,
+  Image,
+  Layout,
+  Popover,
+  Progress,
+  Row,
+  Slider,
+  Switch,
+  Tabs,
+  type GetProp,
+} from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -15,6 +38,10 @@ import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
 import Markdown from 'react-markdown'
+import Sider from 'antd/es/layout/Sider'
+import { Typography } from 'antd'
+
+const { Text, Title } = Typography
 
 interface SamplerOptions {
   temperature: number
@@ -243,7 +270,13 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(worker, message, llmContent.current, stateKey.current, samplerOptionsRef.current)
+      invoke(
+        worker,
+        message,
+        llmContent.current,
+        stateKey.current,
+        samplerOptionsRef.current
+      )
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -260,233 +293,358 @@ const Chat = () => {
   const [stateVisualOpen, setStateVisualOpen] = useState(false)
   const [stateVisualFull, setStateVisualFull] = useState(false)
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
-  const [samplerOptionsOpen, setSamplerOptionsOpen] = useState(false)
+  const [sampleOptionsCollapsed, setSampleOptionsCollapsed] = useState(false)
 
-  const renderMessages = () => messages.map((message) => ({
-    key: message.id,
-    role: message.status === 'local' ? 'local' : 'ai',
-    content: <Markdown>{message.message}</Markdown>
-  }));
-  const renderStateStats = () => stateVisual!.stats.flatMap((x) => {
-    return [
-      { layer: x.layer, head: x.head, value: x.bins[stateStatsOutliers ? 0 : 1] },
-      { layer: x.layer, head: x.head, value: x.bins[2] },
-      { layer: x.layer, head: x.head, value: x.bins[3] },
-      { layer: x.layer, head: x.head, value: x.bins[4] },
-      { layer: x.layer, head: x.head, value: x.bins[stateStatsOutliers ? 6 : 5] },
-    ]
-  })
-  const renderStateImages = () => stateVisual!.images.map((line, layer) =>
-    <Row>
-      <Col span={1}>Layer {layer}</Col>
-      <Col span={23}>
+  const renderMessages = () =>
+    messages.map((message) => ({
+      key: message.id,
+      role: message.status === 'local' ? 'local' : 'ai',
+      content: <Markdown>{message.message}</Markdown>,
+    }))
+  const renderStateStats = () =>
+    stateVisual!.stats.flatMap((x) => {
+      return [
         {
-          line.map((code) =>
-            <Image
-              width={64}
-              src={`data:image/png;base64,${code}`}
-            />
-          )
-        }
-      </Col>
-    </Row>)
+          layer: x.layer,
+          head: x.head,
+          value: x.bins[stateStatsOutliers ? 0 : 1],
+        },
+        { layer: x.layer, head: x.head, value: x.bins[2] },
+        { layer: x.layer, head: x.head, value: x.bins[3] },
+        { layer: x.layer, head: x.head, value: x.bins[4] },
+        {
+          layer: x.layer,
+          head: x.head,
+          value: x.bins[stateStatsOutliers ? 6 : 5],
+        },
+      ]
+    })
+  const renderStateImages = () =>
+    stateVisual!.images.map((line, layer) => (
+      <Row>
+        <Col span={1}>Layer {layer}</Col>
+        <Col span={23}>
+          {line.map((code) => (
+            <Image width={64} src={`data:image/png;base64,${code}`} />
+          ))}
+        </Col>
+      </Row>
+    ))
 
   return (
-    <Flex
-      vertical
-      gap='middle'
-      style={{
-        padding: 12,
-        boxSizing: 'border-box',
-        overflowY: 'scroll',
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        height: '100vh',
-      }}
-    >
-      {!hasMessages && <Info />}
-      {
-        hasMessages &&
-        <Bubble.List
-          style={{ flex: 1 }}
-          roles={roles}
-          items={renderMessages()}
-        />
-      }
-      {
-        loaded && !hasMessages &&
-        <Prompts
-          title='✨ Inspirational Sparks and Marvelous Tips'
-          items={items}
-          style={{ marginLeft: 24, marginRight: 24 }}
-          onItemClick={(data) => {
-            onRequest(data.data.description as string)
-            console.log(data)
+    <Layout>
+      <Flex
+        vertical
+        gap='middle'
+        style={{
+          padding: 12,
+          boxSizing: 'border-box',
+          overflowY: 'scroll',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          height: '100vh',
+        }}
+      >
+        {!hasMessages && <Info />}
+        {hasMessages && (
+          <Bubble.List
+            style={{ flex: 1 }}
+            roles={roles}
+            items={renderMessages()}
+          />
+        )}
+        {loaded && !hasMessages && (
+          <Prompts
+            title='✨ Inspirational Sparks and Marvelous Tips'
+            items={items}
+            style={{ marginLeft: 24, marginRight: 24 }}
+            onItemClick={(data) => {
+              onRequest(data.data.description as string)
+              console.log(data)
+              setContent('')
+              llmContent.current = ''
+            }}
+            wrap
+          />
+        )}
+        <Sender
+          disabled={!loaded}
+          loading={agent.isRequesting()}
+          value={content}
+          style={{
+            marginLeft: 20,
+            marginRight: 20,
+            boxSizing: 'border-box',
+            width: 'auto',
+          }}
+          onChange={setContent}
+          placeholder='Ask me anything...'
+          onSubmit={(nextContent) => {
+            onRequest(nextContent)
             setContent('')
             llmContent.current = ''
           }}
-          wrap
         />
-      }
-      <Sender
-        disabled={!loaded}
-        loading={agent.isRequesting()}
-        value={content}
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
+          Disclaimer: This model handles general knowledge, creative writing,
+          and basic Python. It may struggle with arithmetic, editing, and
+          complex reasoning.
+        </div>
+        {
+          <FloatButton.Group>
+            {loaded && hasStateVisual && (
+              <FloatButton
+                icon={<BarChartOutlined />}
+                onClick={() => setStateVisualOpen(true)}
+              />
+            )}
+            {sampleOptionsCollapsed && (
+              <FloatButton
+                icon={<SettingOutlined />}
+                onClick={() =>
+                  setSampleOptionsCollapsed(!sampleOptionsCollapsed)
+                }
+              />
+            )}
+          </FloatButton.Group>
+        }
+        {loaded && hasStateVisual && (
+          <Drawer
+            title='State Visualizer'
+            height={stateVisualFull ? '100vh' : 738}
+            placement='bottom'
+            onClose={() => setStateVisualOpen(false)}
+            destroyOnClose={true}
+            open={stateVisualOpen}
+            extra={
+              <Button
+                icon={
+                  stateVisualFull ? (
+                    <FullscreenExitOutlined />
+                  ) : (
+                    <FullscreenOutlined />
+                  )
+                }
+                onClick={() => setStateVisualFull(!stateVisualFull)}
+              />
+            }
+          >
+            <Tabs
+              defaultActiveKey='1'
+              items={[
+                {
+                  key: '1',
+                  label: 'Statistics',
+                  children: (
+                    <>
+                      <Switch
+                        value={stateStatsOutliers}
+                        checkedChildren='Include Outliers'
+                        unCheckedChildren='Exclude Outliers'
+                        onChange={(value) => setStateStatsOutliers(value)}
+                      />
+                      <Violin
+                        violinType='normal'
+                        data={renderStateStats()}
+                        xField='head'
+                        yField='value'
+                        seriesField='layer'
+                      />
+                    </>
+                  ),
+                },
+                {
+                  key: '2',
+                  label: 'Images',
+                  children: <>{renderStateImages()}</>,
+                },
+              ]}
+            />
+          </Drawer>
+        )}
+      </Flex>
+      <Sider
         style={{
-          marginLeft: 20,
-          marginRight: 20,
-          boxSizing: 'border-box',
-          width: 'auto',
+          background: '#0000',
+          borderLeft: sampleOptionsCollapsed ? 'none' : '1px solid #00000033',
+          padding: sampleOptionsCollapsed ? 0 : 12,
         }}
-        onChange={setContent}
-        placeholder='Ask me anything...'
-        onSubmit={(nextContent) => {
-          onRequest(nextContent)
-          setContent('')
-          llmContent.current = ''
-        }}
-      />
-      <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
-        Disclaimer: This model handles general knowledge, creative writing, and
-        basic Python. It may struggle with arithmetic, editing, and complex
-        reasoning.
-      </div>
-      {
-        <FloatButton.Group>
-          {
-            loaded && hasStateVisual &&
-            <FloatButton
-              icon={<BarChartOutlined />}
-              onClick={() => setStateVisualOpen(true)}
-            />
-          }
-          {
-            loaded &&
-            <FloatButton
-              icon={<SettingOutlined />}
-              onClick={() => setSamplerOptionsOpen(true)}
-            />
-          }
-        </FloatButton.Group>
-      }
-      {
-        loaded && hasStateVisual &&
-        <Drawer
-          title='State Visualizer'
-          height={stateVisualFull ? '100vh' : 738}
-          placement='bottom'
-          onClose={() => setStateVisualOpen(false)}
-          destroyOnClose={true}
-          open={stateVisualOpen}
-          extra={
-            <Button
-              icon={stateVisualFull ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-              onClick={() => setStateVisualFull(!stateVisualFull)}
-            />
-          }
-        >
-          <Tabs
-            defaultActiveKey='1'
-            items={[
-              {
-                key: '1',
-                label: 'Statistics',
-                children: <>
-                  <Switch
-                    value={stateStatsOutliers}
-                    checkedChildren='Include Outliers'
-                    unCheckedChildren='Exclude Outliers'
-                    onChange={(value) => setStateStatsOutliers(value)}
-                  />
-                  <Violin
-                    violinType='normal'
-                    data={renderStateStats()}
-                    xField='head'
-                    yField='value'
-                    seriesField='layer'
-                  />
-                </>
-              },
-              {
-                key: '2',
-                label: 'Images',
-                children: <>{renderStateImages()}</>
-              }
-            ]}
+        theme='light'
+        width={250}
+        collapsedWidth={0}
+        breakpoint='lg'
+        collapsible
+        collapsed={sampleOptionsCollapsed}
+        onCollapse={(value) => setSampleOptionsCollapsed(value)}
+      >
+        <Flex justify='space-between' gap='middle'>
+          <Title level={4}>Sampler Options</Title>
+          <Button
+            icon={<CloseOutlined />}
+            onClick={() => setSampleOptionsCollapsed(!sampleOptionsCollapsed)}
           />
-        </Drawer>
-      }
-      {
-        loaded &&
-        <Drawer
-          title='Sampler Options'
-          onClose={() => setSamplerOptionsOpen(false)}
-          open={samplerOptionsOpen}
-        >
-          <>
-            Temperature
-            <Slider
-              min={0}
-              max={5}
-              step={0.1}
-              onChange={(value) => updateSamplerOptions({ ...samplerOptions, temperature: value })}
-              value={samplerOptions.temperature}
-            />
-          </>
-          <>
-            Top P
-            <Slider
-              min={0}
-              max={1}
-              step={0.01}
-              onChange={(value) => updateSamplerOptions({ ...samplerOptions, top_p: value })}
-              value={samplerOptions.top_p}
-            />
-          </>
-          <>
-            Presence Penalty
-            <Slider
-              min={0}
-              max={5}
-              step={0.1}
-              onChange={(value) => updateSamplerOptions({ ...samplerOptions, presence_penalty: value })}
-              value={samplerOptions.presence_penalty}
-            />
-          </>
-          <>
-            Count Penalty
-            <Slider
-              min={0}
-              max={5}
-              step={0.1}
-              onChange={(value) => updateSamplerOptions({ ...samplerOptions, count_penalty: value })}
-              value={samplerOptions.count_penalty}
-            />
-          </>
-          <>
-            Penalty Half Life
-            <Slider
-              min={1}
-              max={2048}
-              step={1}
-              onChange={(value) => updateSamplerOptions({ ...samplerOptions, half_life: value })}
-              value={samplerOptions.half_life}
-            />
-          </>
-        </Drawer>
-      }
-    </Flex>
+        </Flex>
+        <Flex vertical gap={18}>
+          <Popover
+            overlayStyle={{ maxWidth: 300 }}
+            title='Explanation of Temperature'
+            content={
+              <Text>
+                Temperature controls the randomness of the generated text.
+                Higher values (e.g., 1.0 or above) result in more randomness,
+                while lower values (e.g., 0.2) make the output more
+                deterministic and focused on high-probability words.
+              </Text>
+            }
+          >
+            <Flex gap={4} style={{ cursor: 'help' }}>
+              <Text>Temperature:</Text>
+              <Text>{samplerOptions.temperature}</Text>
+            </Flex>
+          </Popover>
+          <Slider
+            min={0}
+            max={5}
+            step={0.1}
+            onChange={(value) =>
+              updateSamplerOptions({ ...samplerOptions, temperature: value })
+            }
+            value={samplerOptions.temperature}
+          />
+        </Flex>
+        <Flex vertical gap={18}>
+          <Popover
+            overlayStyle={{ maxWidth: 300 }}
+            title='Explanation of Top P'
+            content={
+              <Text>
+                Top-p (nucleus sampling) limits the candidate word set by
+                choosing words whose cumulative probabilities reach a threshold
+                (e.g., 0.9). It balances diversity while avoiding complete
+                randomness.
+              </Text>
+            }
+          >
+            <Flex gap={4} style={{ cursor: 'help' }}>
+              <Text>Top P:</Text>
+              <Text>{samplerOptions.top_p}</Text>
+            </Flex>
+          </Popover>
+          <Slider
+            min={0}
+            max={1}
+            step={0.01}
+            onChange={(value) =>
+              updateSamplerOptions({ ...samplerOptions, top_p: value })
+            }
+            value={samplerOptions.top_p}
+          />
+        </Flex>
+        <Flex vertical gap={18}>
+          <Popover
+            overlayStyle={{ maxWidth: 300 }}
+            title='Explanation of Presence Penalty'
+            content={
+              <Text>
+                Presence penalty reduces the likelihood of the model reusing
+                words or topics it has already generated. Higher values
+                encourage the model to introduce new words or ideas.
+              </Text>
+            }
+          >
+            <Flex gap={4} style={{ cursor: 'help' }}>
+              <Text>Presence Penalty:</Text>
+              <Text>{samplerOptions.presence_penalty}</Text>
+            </Flex>
+          </Popover>
+          <Slider
+            min={0}
+            max={5}
+            step={0.1}
+            onChange={(value) =>
+              updateSamplerOptions({
+                ...samplerOptions,
+                presence_penalty: value,
+              })
+            }
+            value={samplerOptions.presence_penalty}
+          />
+        </Flex>
+        <Flex vertical gap={18}>
+          <Popover
+            title='Explanation of Count Penalty'
+            content={
+              <Text>
+                Count penalty (frequency penalty) discourages overuse of
+                repeated words in the generated text. Higher values impose
+                stronger penalties on frequently used words.
+              </Text>
+            }
+          >
+            <Flex gap={4} style={{ cursor: 'help' }}>
+              <Text>Count Penalty:</Text>
+              <Text>{samplerOptions.count_penalty}</Text>
+            </Flex>
+          </Popover>
+          <Slider
+            min={0}
+            max={5}
+            step={0.1}
+            onChange={(value) =>
+              updateSamplerOptions({ ...samplerOptions, count_penalty: value })
+            }
+            value={samplerOptions.count_penalty}
+          />
+        </Flex>
+        <Flex vertical gap={18}>
+          <Popover
+            overlayStyle={{ maxWidth: 300 }}
+            title='Explanation of Penalty Half Life'
+            content={
+              <Text>
+                Half-life dynamically adjusts the influence of parameters like
+                penalties or weights. Longer half-life means the effect lasts
+                longer, while shorter half-life results in quicker dissipation
+                of the adjustment.
+              </Text>
+            }
+          >
+            <Flex gap={4} style={{ cursor: 'help' }}>
+              <Text>Penalty Half Life:</Text>
+              <Text>{samplerOptions.half_life}</Text>
+            </Flex>
+          </Popover>
+          <Slider
+            min={1}
+            max={2048}
+            step={1}
+            onChange={(value) =>
+              updateSamplerOptions({ ...samplerOptions, half_life: value })
+            }
+            value={samplerOptions.half_life}
+          />
+        </Flex>
+      </Sider>
+    </Layout>
   )
 }
 
-const invoke = (worker: Worker, message: string, history: string, state: string, sampler: SamplerOptions) => {
+const invoke = (
+  worker: Worker,
+  message: string,
+  history: string,
+  state: string,
+  sampler: SamplerOptions
+) => {
   let prompt: string
   if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
-  else if (history.length >= 2 && history.slice(-2) === '\n\n') prompt = `User: ${message}\n\nAssistant:`
+  else if (history.length >= 2 && history.slice(-2) === '\n\n')
+    prompt = `User: ${message}\n\nAssistant:`
   else prompt = `\n\nUser: ${message}\n\nAssistant:`
 
-  const { temperature, top_p, presence_penalty, count_penalty, half_life } = sampler
+  const { temperature, top_p, presence_penalty, count_penalty, half_life } =
+    sampler
   const options = {
     task: 'chat',
     max_len: 2048,
@@ -522,7 +680,7 @@ const Info = () => {
     setLoading(true)
     setLoaded(false)
     const chunks = await loadData(
-      "chat",
+      'chat',
       kDebugMode ? modelUrl : remoteUrl,
       remoteKey,
       (progress) => {
