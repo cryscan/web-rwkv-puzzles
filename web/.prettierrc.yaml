@@ -1,5 +1,8 @@
-tabWidth: 2
-trailingComma: none
-singleQuote: true
+filepath: frontend/**
+jsxSingleQuote: true
+printWidth: 80
 semi: false
-printWidth: 1000
+singleAttributePerLine: false
+singleQuote: true
+tabWidth: 2
+trailingComma: all

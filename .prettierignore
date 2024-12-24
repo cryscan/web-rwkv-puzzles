@@ -3,7 +3,6 @@ frontend/build/**
 package.json
 pkg/**
 tsconfig.json
-web/**
 frontend/pnpm-lock.yaml
 rwkv_vocab_v20230424.json
 puzzle15_vocab.json
