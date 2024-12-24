@@ -288,6 +288,9 @@ if ('function' === typeof importScripts) {
                 break
             }
             break
+          case 'replay':
+            replay(e.data, this)
+            break
           default:
             console.warn(`🤔 Invalid task: ${task}`)
         }
