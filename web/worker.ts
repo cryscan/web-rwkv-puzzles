@@ -212,9 +212,8 @@ if ('function' === typeof importScripts) {
     await session.back(state)
     _states.set(state_key, state)
 
-    const state_clone = new Float32Array(state)
-    const visual = JSON.parse(new StateVisual(info, state_clone).json())
-    window.postMessage({ type: 'state', state: state_clone, visual })
+    const visual = JSON.parse(new StateVisual(info, state).json())
+    window.postMessage({ type: 'state', state: new Float32Array(state), visual })
   }
 
   async function replay(message: string, window: Window) {
@@ -252,18 +251,32 @@ if ('function' === typeof importScripts) {
       const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
       await session.run(new Uint16Array([token]), logits)
       await session.back(state)
-      const state_clone = new Float32Array(state)
-      const visual = new StateVisual(info, state_clone)
+      const visual = new StateVisual(info, state)
       window.postMessage({
         type: 'replay',
         token,
         word,
-        state: state_clone,
+        state: new Float32Array(state),
         visual,
       })
     }
 
     window.postMessage({ type: 'replay_end' })
+  }
+
+  function clone_state(data: string) {
+    const { source, destination } = JSON.parse(data)
+
+    if (!_states.has(source)) {
+      console.error(`😡 Cannot find source key ${source}`)
+      return
+    }
+    if (source === destination) {
+      console.warn(`🤔 Key the same: ${source}`)
+    }
+    const state = new Float32Array(_states.get(source)!)
+    _states.set(destination, state)
+    console.log(`✅ State ${source} cloned to ${destination}`)
   }
 
   this.addEventListener(
@@ -298,6 +311,9 @@ if ('function' === typeof importScripts) {
             break
           case 'replay':
             replay(e.data, this)
+            break
+          case `clone_state`:
+            clone_state(e.data)
             break
           default:
             console.warn(`🤔 Invalid task: ${task}`)
