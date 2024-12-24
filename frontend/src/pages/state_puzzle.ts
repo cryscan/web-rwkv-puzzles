@@ -2,7 +2,7 @@ import { atom, selector } from 'recoil'
 
 const worker = atom({
   key: 'puzzle_worker',
-  default: new Worker('llm/worker.js')
+  default: new Worker('llm/worker.js'),
 })
 
 const displayState = atom<'none' | 'loading' | 'loaded' | 'running'>({

@@ -1,5 +1,5 @@
 .ReactPiano__Key--accidental {
-  background: url("../assets/black-key.png");
+  background: url('../assets/black-key.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
   height: 60%;
@@ -12,7 +12,7 @@
 }
 
 .ReactPiano__Key--natural {
-  background: url("../assets/white-key.png");
+  background: url('../assets/white-key.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
   height: 100%;
@@ -24,13 +24,13 @@
   margin-right: 1px;
 }
 .ReactPiano__Key--active {
-  background: url("../assets/white-key-pressed.png");
+  background: url('../assets/white-key-pressed.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
 }
 
 .ReactPiano__Key--active.ReactPiano__Key--accidental {
-  background: url("../assets/black-key-pressed.png");
+  background: url('../assets/black-key-pressed.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
   height: 60%;
@@ -88,4 +88,3 @@
 .ReactPiano__NoteLabel--natural.ReactPiano__NoteLabel--active {
   color: #f8e8d5;
 }
-

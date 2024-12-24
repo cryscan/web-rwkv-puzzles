@@ -275,7 +275,7 @@ const Chat = () => {
         message,
         llmContent.current,
         stateKey.current,
-        samplerOptionsRef.current
+        samplerOptionsRef.current,
       )
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
@@ -655,7 +655,7 @@ const invoke = (
   message: string,
   history: string,
   state: string,
-  sampler: SamplerOptions
+  sampler: SamplerOptions,
 ) => {
   let prompt: string
   if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
@@ -711,7 +711,7 @@ const Info = () => {
       },
       (loadedLength) => {
         setLoadedLength(loadedLength)
-      }
+      },
     )
     await setupWorker(worker, chunks, 'chat')
     setLoading(false)

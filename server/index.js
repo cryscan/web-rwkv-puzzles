@@ -16,7 +16,7 @@ connect()
     console.log(
       'You can open:\n\nhttp://localhost:' +
         port +
-        '\n\nin your browser to check frontend.'
+        '\n\nin your browser to check frontend.',
     )
     return
   })
