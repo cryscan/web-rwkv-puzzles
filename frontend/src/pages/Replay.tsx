@@ -191,7 +191,7 @@ const Replay = () => {
         {hasAnimation && (
           <Slider
             min={0}
-            max={tokenIndex}
+            max={animation.current.length - 1}
             step={1}
             onChange={(value) => setFrameIndex(value)}
             value={frameIndex}
