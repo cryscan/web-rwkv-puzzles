@@ -53,7 +53,7 @@ const heartBeatSet = atom({
   default: false,
 })
 
-const editingIndex = atom<string | number | null>({
+const editingIndex = atom<number | null>({
   key: 'editingIndex',
   default: null,
 })

@@ -132,10 +132,10 @@
     resize-observer-polyfill "^1.5.1"
     throttle-debounce "^5.0.0"
 
-"@ant-design/x@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@ant-design/x/-/x-1.0.2.tgz"
-  integrity sha512-1fCdE14eV0ibCoA4EFLFLgjbAcwqyniX/dMPhZtpE+e8YxJvnIVLQleVKxw6Osyi12KPnQFFeiXDhkf9u03TIA==
+"@ant-design/x@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@ant-design/x/-/x-1.0.4.tgz#941a295226c527137644337de896350a7482f36d"
+  integrity sha512-YrwgHjJITC50vBpe5MxJ/Mj6XXWDy90xfmCOPPrEtR4jPw57t7RwKo/LNG3R59PQqhvRsKRUaQBTc/r0NdCW7A==
   dependencies:
     "@ant-design/colors" "^7.1.0"
     "@ant-design/cssinjs" "^1.21.1"
