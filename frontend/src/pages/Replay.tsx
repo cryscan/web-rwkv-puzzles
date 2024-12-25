@@ -51,6 +51,7 @@ const Replay = () => {
         const { index, total, word, visual } = event
         setTokenIndex(index)
         setTokenTotal(total)
+        setAnimationReady(false)
 
         if (!tourOpened.current) setTourOpen(true)
 
@@ -168,7 +169,7 @@ const Replay = () => {
         >
           <Sender
             ref={refSender}
-            disabled={!loaded}
+            disabled={!loaded || !animationReady}
             loading={!animationReady}
             value={content}
             style={{
