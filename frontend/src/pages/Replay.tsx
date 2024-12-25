@@ -1,10 +1,13 @@
 import { Sender } from '@ant-design/x'
 import {
+  Affix,
   Button,
+  Col,
   Flex,
   Image,
   Layout,
   Progress,
+  Row,
   Slider,
   Space,
   Switch,
@@ -151,15 +154,7 @@ const Replay = () => {
           }}
         />
         {hasAnimation && <Progress percent={percent} />}
-        {hasAnimation && (
-          <Slider
-            min={0}
-            max={animation.current.length - 1}
-            step={1}
-            onChange={(value) => setFrameIndex(value)}
-            value={frameIndex}
-          />
-        )}
+
         {hasAnimation && (
           <Tabs
             defaultActiveKey='1'
@@ -194,6 +189,15 @@ const Replay = () => {
           />
         )}
       </Flex>
+      {hasAnimation && (
+        <Slider
+          min={0}
+          max={animation.current.length - 1}
+          step={1}
+          onChange={(value) => setFrameIndex(value)}
+          value={frameIndex}
+        />
+      )}
     </Layout>
   )
 }
