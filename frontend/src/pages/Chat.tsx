@@ -55,7 +55,7 @@ import TextArea from 'antd/es/input/TextArea'
 
 const { Text, Title } = Typography
 
-const stops = [24281, 0, 82] // User, Q
+const stopTokens = [24281, 0, 82] // User, Q
 
 const items: PromptsProps['items'] = [
   {
@@ -100,7 +100,9 @@ const Chat = () => {
     count_penalty: 0.5,
     half_life: 200,
   })
+
   const samplerOptionsRef = useRef(samplerOptions)
+
   const updateSamplerOptions = (updated: SamplerOptions) => {
     setSamplerOptions(updated)
     samplerOptionsRef.current = updated
@@ -126,7 +128,13 @@ const Chat = () => {
         break
       case 'token':
         const { word, token } = event
-        if (stops.includes(token)) {
+        if (stopTokens.includes(token)) {
+          cloneState(
+            worker,
+            stateKey.current,
+            stateKey.current + '-#' + P.states.length,
+          )
+          P.states.push(stateKey.current + '-#' + P.states.length)
           window.onSuccessBinding(llmContent.current)
         } else {
           llmContent.current += word
@@ -150,13 +158,13 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      invoke(
+      invoke({
         worker,
         message,
-        llmContent.current,
-        stateKey.current,
-        samplerOptionsRef.current,
-      )
+        history: llmContent.current,
+        state: stateKey.current,
+        sampler: samplerOptionsRef.current,
+      })
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
     },
@@ -187,8 +195,47 @@ const Chat = () => {
     setEditingText(message.message)
   }
 
+  const onSendButtonClick = (message: MessageInfo<string>, index: number) => {
+    if (
+      editingText === undefined ||
+      editingText === '' ||
+      editingText === null
+    ) {
+      AppMessage.warning('Please enter the message first')
+      return
+    }
+
+    // agent.request(editingText, {
+    //   onSuccess: (message) => {
+    //     console.log(message)
+    //   },
+    // })
+
+    // TODO: Check it.
+
+    // console.log({ messageId: message.id, editingIndex })
+
+    // invoke(
+    //   worker,
+    //   editingText,
+    //   llmContent.current,
+    //   stateKey.current,
+    //   samplerOptionsRef.current,
+    // )
+
+    // setEditingIndex(null)
+    // setEditingText(undefined)
+    // TODO: send the user message
+  }
+
+  const onModifyButtonClick = (message: MessageInfo<string>, index: number) => {
+    setEditingIndex(message.id)
+    setEditingText(message.message)
+    // TODO: modify the bot's message
+  }
+
   const renderMessages = () => {
-    return messages.map((message: MessageInfo<string>) => {
+    return messages.map((message: MessageInfo<string>, index: number) => {
       const { status, id } = message
       const renderingBot = status !== 'local'
       const editing = editingIndex === id
@@ -216,9 +263,11 @@ const Chat = () => {
               <Button
                 type='primary'
                 onClick={() => {
-                  setEditingIndex(null)
-                  setEditingText(undefined)
-                  // TODO: send the message
+                  if (renderingBot) {
+                    onModifyButtonClick(message, index)
+                  } else {
+                    onSendButtonClick(message, index)
+                  }
                 }}
               >
                 {renderingBot ? 'Modify' : 'Send'}
@@ -327,7 +376,11 @@ const Chat = () => {
         </Text>
         <>
           {line.map((code) => (
-            <Image width={64} src={`data:image/png;base64,${code}`} />
+            <Image
+              key={code}
+              width={64}
+              src={`data:image/png;base64,${code}`}
+            />
           ))}
         </>
       </Flex>
@@ -639,13 +692,19 @@ const Chat = () => {
   )
 }
 
-const invoke = (
-  worker: Worker,
-  message: string,
-  history: string,
-  state: string,
-  sampler: SamplerOptions,
-) => {
+const invoke = ({
+  worker,
+  message,
+  history,
+  state,
+  sampler,
+}: {
+  worker: Worker
+  message: string
+  history: string
+  state: string
+  sampler: SamplerOptions
+}) => {
   let prompt: string
 
   if (history === '') {
@@ -670,7 +729,7 @@ const invoke = (
     max_len: 2048,
     prompt,
     state_key: state,
-    stop_tokens: stops,
+    stop_tokens: stopTokens,
     temperature,
     top_p,
     presence_penalty,
@@ -680,6 +739,15 @@ const invoke = (
     sampler: 'nucleus',
   }
   worker.postMessage(JSON.stringify(options))
+}
+
+const cloneState = (worker: Worker, source: string, destination: string) => {
+  const message = {
+    type: 'clone_state',
+    source,
+    destination,
+  }
+  worker.postMessage(JSON.stringify(message))
 }
 
 const Info = () => {
