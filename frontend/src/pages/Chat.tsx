@@ -187,7 +187,7 @@ const items: PromptsProps['items'] = [
 const roles: GetProp<typeof Bubble.List, 'roles'> = {
   ai: {
     placement: 'start',
-    avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
+    avatar: { icon: <img src='./assets/logo.png' alt='RWKV WebGPU Logo' /> },
   },
   local: {
     placement: 'end',
