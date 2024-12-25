@@ -1,7 +1,7 @@
 export async function setupWorker(
   worker: Worker,
   chunks: Uint8Array[],
-  type: 'puzzle' | 'chat',
+  type: 'puzzle' | 'chat' | 'music',
 ) {
   // console.log('🔄 Loading worker')
   // var worker = new Worker('llm/worker.js')
@@ -23,6 +23,16 @@ export async function setupWorker(
         const { data } = e
         try {
           window.puzzle(data)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+      break
+    case 'music':
+      worker.onmessage = (e) => {
+        const { data } = e
+        try {
+          window.music(data)
         } catch (e) {
           console.error(e)
         }

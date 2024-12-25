@@ -99,9 +99,14 @@ if ('function' === typeof importScripts) {
 
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
+    console.log('Attempting to load tokenizer from:', url)  // 添加日志
     const req = await fetch(url)
+    if (!req.ok) {  // 添加错误检查
+      console.error(`Failed to load tokenizer: ${req.status} ${req.statusText}`)
+      throw new Error(`Failed to load tokenizer from ${url}`)
+    }
     const vocab = await req.text()
-    console.log(`📌 Tokenizer: ${vocab.length}`)
+    console.log(`📌 Tokenizer content:`, vocab)  // 添加日志
 
     const tokenizer = new wasm_bindgen.Tokenizer(vocab)
     _tokenizers.set(url, tokenizer)
@@ -245,6 +250,8 @@ if ('function' === typeof importScripts) {
       state: new Float32Array(state),
       visual,
     })
+    
+    window.postMessage({ type: 'generation_complete' })
   }
 
   async function replay(message: string, window: Window) {
@@ -350,14 +357,19 @@ if ('function' === typeof importScripts) {
         switch (task) {
           case 'puzzle':
           case 'chat':
+          case 'music':
             run(e.data, this)
             break
+          
           case 'set_session_type':
             switch (options.type) {
               case 'puzzle':
                 config.session_type = SessionType.Puzzle
                 break
               case 'chat':
+                config.session_type = SessionType.Chat
+                break
+              case 'music':
                 config.session_type = SessionType.Chat
                 break
             }
