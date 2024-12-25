@@ -147,11 +147,6 @@ const Replay = () => {
             description: 'Slide to visualize states on inputting tokens.',
             target: refFrameSlider.current,
           },
-          {
-            title: 'Retry Another Prompt',
-            description: 'You can type in another prompt to retry.',
-            target: refSender.current,
-          },
         ]}
       />
       <Layout style={{ height: '100vh' }}>
@@ -179,7 +174,7 @@ const Replay = () => {
               width: 'auto',
             }}
             onChange={setContent}
-            placeholder='Input prompt to process...'
+            placeholder='Input some text to visualize the evolving of states...'
             onSubmit={(message) => {
               sendRequest(message)
               setContent('')
@@ -224,27 +219,29 @@ const Replay = () => {
               ]}
             />
           )}
+          {hasAnimation && (
+            <Affix offsetBottom={0}>
+              <Row>
+                <Col span={1}></Col>
+                <Col span={2}>
+                  <Text strong underline style={{ textAlign: 'right' }}>
+                    {animation.current[frameIndex].word}
+                  </Text>
+                </Col>
+                <Col span={18} ref={refFrameSlider}>
+                  <Slider
+                    min={0}
+                    max={animation.current.length - 1}
+                    step={1}
+                    onChange={(value) => setFrameIndex(value)}
+                    value={frameIndex}
+                  />
+                </Col>
+                <Col span={3}></Col>
+              </Row>
+            </Affix>
+          )}
         </Flex>
-        {hasAnimation && (
-          <Row>
-            <Col span={1}></Col>
-            <Col span={2}>
-              <Text strong underline style={{ textAlign: 'right' }}>
-                {animation.current[frameIndex].word}
-              </Text>
-            </Col>
-            <Col span={18} ref={refFrameSlider}>
-              <Slider
-                min={0}
-                max={animation.current.length - 1}
-                step={1}
-                onChange={(value) => setFrameIndex(value)}
-                value={frameIndex}
-              />
-            </Col>
-            <Col span={3}></Col>
-          </Row>
-        )}
       </Layout>
     </>
   )
