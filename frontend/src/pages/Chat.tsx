@@ -14,6 +14,7 @@ import {
   RightOutlined,
   UpOutlined,
   DownOutlined,
+  InboxOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -42,6 +43,7 @@ import Markdown from 'react-markdown'
 import Sider from 'antd/es/layout/Sider'
 import { Typography } from 'antd'
 import { SamplerOptions, StateVisual } from '../func/gluon'
+import Dragger from 'antd/es/upload/Dragger'
 
 const { Text, Title } = Typography
 
@@ -757,7 +759,6 @@ const Info = () => {
         basic multilingual, and basic coding. It may struggle with arithmetic,
         editing, and complex reasoning.
       </div>
-      <div style={{ height: 36 }}></div>
 
       {loading && (
         <div>
@@ -771,6 +772,16 @@ const Info = () => {
           percent={progress}
           format={() => ''}
         />
+      )}
+      {!loaded && !loading && (
+        <Dragger>
+          <p className='ant-upload-drag-icon'>
+            <InboxOutlined />
+          </p>
+          <p className='ant-upload-text'>
+            Click or drag file to this area to open local .st model.
+          </p>
+        </Dragger>
       )}
       {!loaded && (
         <Button
