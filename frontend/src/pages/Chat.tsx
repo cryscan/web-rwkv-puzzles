@@ -36,6 +36,7 @@ import {
   Tooltip,
   type GetProp,
   Row,
+  Divider,
 } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
@@ -85,6 +86,8 @@ const Chat = () => {
 
   const worker = useRecoilValue(P.worker)
   const stateKey = useRef(new Date().toUTCString())
+  const latestUserInput = useRef<string | undefined>(undefined)
+
   const [, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
@@ -102,6 +105,7 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
+      latestUserInput.current = message
       invoke({
         worker,
         message,
@@ -114,7 +118,7 @@ const Chat = () => {
     },
   })
 
-  const { onRequest, messages } = useXChat({
+  const { onRequest, messages, setMessages } = useXChat({
     agent,
   })
 
@@ -156,12 +160,16 @@ const Chat = () => {
       case 'token':
         const { word, token } = event
         if (stopTokens.includes(token)) {
-          cloneState(
-            worker,
-            stateKey.current,
-            stateKey.current + '-#' + P.states.length,
-          )
-          P.states.push(stateKey.current + '-#' + P.states.length)
+          let historyStateKey =
+            stateKey.current.split('-#')[0] + '-#' + (P.states.length + 1)
+          stateKey.current = historyStateKey
+          cloneState(worker, stateKey.current, historyStateKey)
+          P.states.push(historyStateKey)
+          console.log({
+            method: 'onWorkerMessageReceived',
+            states: [...P.states],
+            stateKey: stateKey.current,
+          })
           window.onSuccessBinding(llmContent.current)
         } else {
           llmContent.current += word
@@ -176,9 +184,38 @@ const Chat = () => {
     navigator.clipboard.writeText(message.message)
   }
 
-  const onEditButtonClick = (message: MessageInfo<string>) => {
-    setEditingIndex(message.id)
+  const onEditButtonClick = (message: MessageInfo<string>, index: number) => {
+    setEditingIndex(index)
     setEditingText(message.message)
+  }
+
+  const onRegenerateButtonClick = (
+    message: MessageInfo<string>,
+    index: number,
+  ) => {
+    setEditingIndex(null)
+    setEditingText(undefined)
+
+    setMessages((prevMessages) => {
+      const newMessages = [...prevMessages].slice(0, index - 1)
+      return newMessages
+    })
+
+    llmContent.current = ''
+
+    if ((index + 1) % 2 !== 0) return AppMessage.error('Invalid message index')
+
+    if (index === 1) {
+      stateKey.current = new Date().toUTCString()
+    } else {
+      stateKey.current = stateKey.current.split('-#')[0] + '-#' + index / 2
+    }
+
+    P.states = P.states.slice(0, index / 2)
+
+    if (latestUserInput.current) {
+      onRequest(latestUserInput.current)
+    }
   }
 
   const onSendButtonClick = (message: MessageInfo<string>, index: number) => {
@@ -191,31 +228,31 @@ const Chat = () => {
       return
     }
 
-    // agent.request(editingText, {
-    //   onSuccess: (message) => {
-    //     console.log(message)
-    //   },
-    // })
+    setMessages((prevMessages) => {
+      const newMessages = [...prevMessages].slice(0, index)
+      return newMessages
+    })
 
-    // TODO: Check it.
+    llmContent.current = ''
 
-    // console.log({ messageId: message.id, editingIndex })
+    if (index % 2 !== 0) return AppMessage.error('Invalid message index')
 
-    // invoke(
-    //   worker,
-    //   editingText,
-    //   llmContent.current,
-    //   stateKey.current,
-    //   samplerOptionsRef.current,
-    // )
+    if (index === 0) {
+      stateKey.current = new Date().toUTCString()
+    } else {
+      stateKey.current = stateKey.current.split('-#')[0] + '-#' + index / 2
+    }
 
-    // setEditingIndex(null)
-    // setEditingText(undefined)
-    // TODO: send the user message
+    P.states = P.states.slice(0, index / 2)
+
+    onRequest(editingText)
+
+    setEditingIndex(null)
+    setEditingText(undefined)
   }
 
   const onModifyButtonClick = (message: MessageInfo<string>, index: number) => {
-    setEditingIndex(message.id)
+    setEditingIndex(index)
     setEditingText(message.message)
     // TODO: modify the bot's message
   }
@@ -224,7 +261,7 @@ const Chat = () => {
     return messages.map((message: MessageInfo<string>, index: number) => {
       const { status, id } = message
       const renderingBot = status !== 'local'
-      const editing = editingIndex === id
+      const editing = editingIndex === index
       const bubbleData: BubbleDataType = {
         key: id,
         role: renderingBot ? 'ai' : 'local',
@@ -244,8 +281,21 @@ const Chat = () => {
               onChange={(e) => {
                 setEditingText(e.target.value)
               }}
+              onPressEnter={(e) => {
+                console.log({ onPressEnter: e })
+                if (e.shiftKey) return
+                if (renderingBot) {
+                  onModifyButtonClick(message, index)
+                } else {
+                  onSendButtonClick(message, index)
+                }
+              }}
             />
-            <Flex justify='end' gap={4}>
+            <Flex justify='end' gap={8} align='center'>
+              <Text style={{ color: '#999' }}>
+                {'shift + ⏎ to change line'}
+              </Text>
+              <Divider type='vertical' />
               <Button
                 type='primary'
                 onClick={() => {
@@ -256,7 +306,7 @@ const Chat = () => {
                   }
                 }}
               >
-                {renderingBot ? 'Modify' : 'Send'}
+                {renderingBot ? 'Modify (⏎)' : 'Send (⏎)'}
               </Button>
               <Button
                 onClick={() => {
@@ -279,7 +329,7 @@ const Chat = () => {
                     variant='text'
                     size='small'
                     icon={<EditOutlined />}
-                    onClick={() => onEditButtonClick(message)}
+                    onClick={() => onEditButtonClick(message, index)}
                   />
                 </Tooltip>
                 <Tooltip title='Copy'>
@@ -305,6 +355,7 @@ const Chat = () => {
                   variant='text'
                   size='small'
                   icon={<SyncOutlined />}
+                  onClick={() => onRegenerateButtonClick(message, index)}
                 />
               </Tooltip>
               <Tooltip title='Copy'>
@@ -322,7 +373,7 @@ const Chat = () => {
                   variant='text'
                   size='small'
                   icon={<EditOutlined />}
-                  onClick={() => onEditButtonClick(message)}
+                  onClick={() => onEditButtonClick(message, index)}
                 />
               </Tooltip>
             </>
@@ -354,7 +405,7 @@ const Chat = () => {
 
   const renderStateImages = () => {
     return stateVisual!.images.map((line, layer) => (
-      <Flex>
+      <Flex key={layer}>
         <Text
           strong
           style={{ minWidth: 100, textAlign: 'center', alignSelf: 'center' }}

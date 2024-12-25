@@ -53,7 +53,7 @@ const remoteKey = atom({
     '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
 })
 
-const editingIndex = atom<string | number | null>({
+const editingIndex = atom<number | null>({
   key: 'editingIndex',
   default: null,
 })
