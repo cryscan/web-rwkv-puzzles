@@ -27,6 +27,7 @@ import {
   Progress,
   Row,
   Slider,
+  Space,
   Switch,
   Tabs,
   type GetProp,
@@ -302,14 +303,14 @@ const Chat = () => {
     })
   const renderStateImages = () =>
     stateVisual!.images.map((line, layer) => (
-      <Row>
-        <Col span={1}>Layer {layer}</Col>
-        <Col span={23}>
+      <Space>
+        <Button style={{ minWidth: 100 }}>Layer {layer}</Button>
+        <>
           {line.map((code) => (
             <Image width={64} src={`data:image/png;base64,${code}`} />
           ))}
-        </Col>
-      </Row>
+        </>
+      </Space>
     ))
 
   return (

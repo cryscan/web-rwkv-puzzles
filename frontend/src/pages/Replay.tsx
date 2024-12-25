@@ -1,42 +1,18 @@
-import {
-  Bubble,
-  Prompts,
-  PromptsProps,
-  Sender,
-  useXAgent,
-  useXChat,
-} from '@ant-design/x'
-import {
-  BarChartOutlined,
-  BulbOutlined,
-  FullscreenExitOutlined,
-  FullscreenOutlined,
-  SettingOutlined,
-  UserOutlined,
-  CloseOutlined,
-} from '@ant-design/icons'
+import { Sender } from '@ant-design/x'
 import {
   Button,
-  Col,
-  Drawer,
   Flex,
-  FloatButton,
   Image,
   Layout,
-  message,
-  Popover,
   Progress,
-  Row,
   Slider,
+  Space,
   Switch,
   Tabs,
-  type GetProp,
 } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { loadData } from '../func/load'
-import { setupWorker } from '../setup_worker'
 import { Typography } from 'antd'
 import { StateVisual } from '../func/gluon'
 import { Violin } from '@ant-design/charts'
@@ -55,6 +31,7 @@ const Replay = () => {
 
   const [tokenIndex, setTokenIndex] = useState(0)
   const [tokenTotal, setTokenTotal] = useState(0)
+  const [animationReady, setAnimationReady] = useState(true)
   const animation = useRef<Frame[]>([])
 
   const worker = useRecoilValue(P.worker)
@@ -77,6 +54,7 @@ const Replay = () => {
 
         break
       case 'replay_end':
+        setAnimationReady(true)
         break
     }
   }
@@ -91,9 +69,6 @@ const Replay = () => {
     worker.postMessage(JSON.stringify(options))
   }
 
-  const isLoading = () =>
-    tokenTotal > 0 && (tokenIndex == 0 || tokenIndex < tokenTotal - 1)
-
   const initializeApp = () => {
     window.chat = onWorkerMessageReceived
     console.log('✅ Replay worker callback set')
@@ -104,6 +79,7 @@ const Replay = () => {
   }, [])
 
   const hasAnimation = animation.current.length > 0
+  const percent = Math.round((tokenIndex / (tokenTotal - 1)) * 100)
   const [loaded] = useRecoilState(P.loaded)
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
   const [frameIndex, setFrameIndex] = useState(0)
@@ -126,32 +102,17 @@ const Replay = () => {
         },
       ]
     })
-
-  const renderStateImages = (index: number) => (
-    <Flex
-      vertical
-      gap='middle'
-      style={{
-        boxSizing: 'border-box',
-        overflowY: 'scroll',
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        height: '100vh',
-      }}
-    >
-      {animation.current[index].visual.images.map((line, layer) => (
-        <Row>
-          <Col span={1}>Layer {layer}</Col>
-          <Col span={23}>
-            {line.map((code) => (
-              <Image width={64} src={`data:image/png;base64,${code}`} />
-            ))}
-          </Col>
-        </Row>
-      ))}
-    </Flex>
-  )
+  const renderStateImages = (index: number) =>
+    animation.current[index].visual.images.map((line, layer) => (
+      <Space>
+        <Button style={{ minWidth: 100 }}>Layer {layer}</Button>
+        <>
+          {line.map((code) => (
+            <Image width={64} src={`data:image/png;base64,${code}`} />
+          ))}
+        </>
+      </Space>
+    ))
 
   return (
     <Layout>
@@ -164,13 +125,12 @@ const Replay = () => {
           overflowY: 'scroll',
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
-          height: '100vh',
+          flex: '1',
         }}
       >
         <Sender
           disabled={!loaded}
-          loading={isLoading()}
+          loading={!animationReady}
           value={content}
           style={{
             marginLeft: 20,
@@ -186,8 +146,10 @@ const Replay = () => {
             setTokenIndex(0)
             setTokenTotal(0)
             setFrameIndex(0)
+            setAnimationReady(false)
           }}
         />
+        {hasAnimation && <Progress percent={percent} />}
         {hasAnimation && (
           <Slider
             min={0}
