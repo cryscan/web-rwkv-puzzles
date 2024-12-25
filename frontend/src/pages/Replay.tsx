@@ -12,6 +12,7 @@ import {
   Space,
   Switch,
   Tabs,
+  Tour,
 } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
@@ -37,6 +38,11 @@ const Replay = () => {
   const [animationReady, setAnimationReady] = useState(true)
   const animation = useRef<Frame[]>([])
 
+  const [tourOpen, setTourOpen] = useState(false)
+  const tourOpened = useRef(false)
+  const refFrameSlider = useRef(null)
+  const refSender = useRef(null)
+
   const worker = useRecoilValue(P.worker)
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
@@ -45,6 +51,8 @@ const Replay = () => {
         const { index, total, word, visual } = event
         setTokenIndex(index)
         setTokenTotal(total)
+
+        if (!tourOpened.current) setTourOpen(true)
 
         const frame = {
           history: llmContent.current,
@@ -73,6 +81,7 @@ const Replay = () => {
   }
 
   const initializeApp = () => {
+    worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.chat = onWorkerMessageReceived
     console.log('✅ Replay worker callback set')
   }
@@ -107,98 +116,131 @@ const Replay = () => {
     })
   const renderStateImages = (index: number) =>
     animation.current[index].visual.images.map((line, layer) => (
-      <Space>
-        <Button style={{ minWidth: 100 }}>Layer {layer}</Button>
+      <Flex>
+        <Text
+          strong
+          style={{ minWidth: 100, textAlign: 'center', alignSelf: 'center' }}
+        >
+          Layer {layer}
+        </Text>
         <>
           {line.map((code) => (
             <Image width={64} src={`data:image/png;base64,${code}`} />
           ))}
         </>
-      </Space>
+      </Flex>
     ))
 
   return (
-    <Layout style={{ height: '100vh' }}>
-      <Flex
-        vertical
-        gap='middle'
-        style={{
-          padding: 12,
-          boxSizing: 'border-box',
-          overflowY: 'scroll',
-          display: 'flex',
-          flexDirection: 'column',
-          flex: '1',
+    <>
+      <Tour
+        closable={false}
+        open={tourOpen}
+        onClose={() => {
+          setTourOpen(false)
+          tourOpened.current = true
         }}
-      >
-        <Sender
-          disabled={!loaded}
-          loading={!animationReady}
-          value={content}
+        steps={[
+          {
+            title: 'Visualize Tokens',
+            description: 'Slide to visualize states on inputting tokens.',
+            target: refFrameSlider.current,
+          },
+          {
+            title: 'Retry Another Prompt',
+            description: 'You can type in another prompt to retry.',
+            target: refSender.current,
+          },
+        ]}
+      />
+      <Layout style={{ height: '100vh' }}>
+        <Flex
+          vertical
+          gap='middle'
           style={{
-            marginLeft: 20,
-            marginRight: 20,
+            padding: 12,
             boxSizing: 'border-box',
-            width: 'auto',
+            overflowY: 'scroll',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1',
           }}
-          onChange={setContent}
-          placeholder='Input prompt to process...'
-          onSubmit={(message) => {
-            sendRequest(message)
-            setContent('')
-            setTokenIndex(0)
-            setTokenTotal(0)
-            setFrameIndex(0)
-            setAnimationReady(false)
-            animation.current = []
-          }}
-        />
-        {hasAnimation && <Progress percent={percent} />}
-
-        {hasAnimation && (
-          <Tabs
-            defaultActiveKey='1'
-            items={[
-              {
-                key: '1',
-                label: 'Statistics',
-                children: (
-                  <>
-                    <Switch
-                      value={stateStatsOutliers}
-                      checkedChildren='Include Outliers'
-                      unCheckedChildren='Exclude Outliers'
-                      onChange={(value) => setStateStatsOutliers(value)}
-                    />
-                    <Violin
-                      violinType='normal'
-                      data={renderStateStats(frameIndex)}
-                      xField='head'
-                      yField='value'
-                      seriesField='layer'
-                    />
-                  </>
-                ),
-              },
-              {
-                key: '2',
-                label: 'Images',
-                children: <>{renderStateImages(frameIndex)}</>,
-              },
-            ]}
+        >
+          <Sender
+            ref={refSender}
+            disabled={!loaded}
+            loading={!animationReady}
+            value={content}
+            style={{
+              marginLeft: 20,
+              marginRight: 20,
+              boxSizing: 'border-box',
+              width: 'auto',
+            }}
+            onChange={setContent}
+            placeholder='Input prompt to process...'
+            onSubmit={(message) => {
+              sendRequest(message)
+              setContent('')
+              setTokenIndex(0)
+              setTokenTotal(0)
+              setFrameIndex(0)
+              setAnimationReady(false)
+              animation.current = []
+            }}
           />
+          {hasAnimation && <Progress percent={percent} />}
+          {hasAnimation && (
+            <Tabs
+              defaultActiveKey='1'
+              items={[
+                {
+                  key: '1',
+                  label: 'Statistics',
+                  children: (
+                    <>
+                      <Switch
+                        value={stateStatsOutliers}
+                        checkedChildren='Include Outliers'
+                        unCheckedChildren='Exclude Outliers'
+                        onChange={(value) => setStateStatsOutliers(value)}
+                      />
+                      <Violin
+                        violinType='normal'
+                        data={renderStateStats(frameIndex)}
+                        xField='head'
+                        yField='value'
+                        seriesField='layer'
+                      />
+                    </>
+                  ),
+                },
+                {
+                  key: '2',
+                  label: 'Images',
+                  children: <>{renderStateImages(frameIndex)}</>,
+                },
+              ]}
+            />
+          )}
+        </Flex>
+        {hasAnimation && (
+          <Row>
+            <Col span={2}></Col>
+            <Col span={20} ref={refFrameSlider}>
+              <Slider
+                min={0}
+                max={animation.current.length - 1}
+                step={1}
+                onChange={(value) => setFrameIndex(value)}
+                value={frameIndex}
+              />
+            </Col>
+            <Col span={2}></Col>
+          </Row>
         )}
-      </Flex>
-      {hasAnimation && (
-        <Slider
-          min={0}
-          max={animation.current.length - 1}
-          step={1}
-          onChange={(value) => setFrameIndex(value)}
-          value={frameIndex}
-        />
-      )}
-    </Layout>
+      </Layout>
+    </>
   )
 }
 

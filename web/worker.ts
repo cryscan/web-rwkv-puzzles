@@ -144,6 +144,7 @@ if ('function' === typeof importScripts) {
   var _init_state: undefined | Float32Array = undefined
   var _states: Map<string, Float32Array> = new Map()
   var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
+  var _abort = false
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
@@ -257,22 +258,24 @@ if ('function' === typeof importScripts) {
     const tokens = tokenizer.encode(encoder.encode(prompt))
     const total = tokens.length
 
-    const logits = new Float32Array(info.num_vocab)
-    for (const [index, token] of tokens.entries()) {
-      const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-      await session.run(new Uint16Array([token]), logits)
-      await session.back(state)
-      const visual = JSON.parse(new StateVisual(info, state).json())
-      window.postMessage({
-        type: 'replay',
-        index,
-        total,
-        token,
-        word,
-        state: new Float32Array(state),
-        visual,
-      })
-    }
+    await window.navigator.locks.request('model', async (lock) => {
+      const logits = new Float32Array(info.num_vocab)
+      for (const [index, token] of tokens.entries()) {
+        const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
+        await session.run(new Uint16Array([token]), logits)
+        await session.back(state)
+        const visual = JSON.parse(new StateVisual(info, state).json())
+        window.postMessage({
+          type: 'replay',
+          index,
+          total,
+          token,
+          word,
+          state: new Float32Array(state),
+          visual,
+        })
+      }
+    })
 
     window.postMessage({ type: 'replay_end' })
   }
@@ -325,8 +328,12 @@ if ('function' === typeof importScripts) {
           case 'replay':
             replay(e.data, this)
             break
-          case `clone_state`:
+          case 'clone_state':
             clone_state(e.data)
+            break
+          case 'abort':
+            _abort = true
+            console.log('🔴 Abort received')
             break
           default:
             console.warn(`🤔 Invalid task: ${task}`)

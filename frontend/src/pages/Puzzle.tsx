@@ -61,10 +61,12 @@ function Puzzle() {
     }
   }
 
+  const worker = useRecoilValue(P.worker)
   const initializeApp = () => {
     if (initializeRef.current) return
     initializeRef.current = true
 
+    worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.puzzle = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
 
@@ -347,8 +349,8 @@ const Controls = () => {
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-            ? '🎉 Finished'
-            : '🚀 Start'}
+          ? '🎉 Finished'
+          : '🚀 Start'}
       </Button>
     </div>
   )

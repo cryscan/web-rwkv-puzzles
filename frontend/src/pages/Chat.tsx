@@ -240,6 +240,7 @@ const Chat = () => {
   }
 
   const initializeApp = () => {
+    worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.chat = onWorkerMessageReceived
     console.log('✅ Chat worker callback set')
   }
@@ -303,14 +304,19 @@ const Chat = () => {
     })
   const renderStateImages = () =>
     stateVisual!.images.map((line, layer) => (
-      <Space>
-        <Button style={{ minWidth: 100 }}>Layer {layer}</Button>
+      <Flex>
+        <Text
+          strong
+          style={{ minWidth: 100, textAlign: 'center', alignSelf: 'center' }}
+        >
+          Layer {layer}
+        </Text>
         <>
           {line.map((code) => (
             <Image width={64} src={`data:image/png;base64,${code}`} />
           ))}
         </>
-      </Space>
+      </Flex>
     ))
 
   return (
