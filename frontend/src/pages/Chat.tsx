@@ -98,6 +98,47 @@ const Chat = () => {
 
   const samplerOptionsRef = useRef(samplerOptions)
 
+  // Agent for request
+  const [agent] = useXAgent({
+    request: async ({ message }, { onSuccess, onUpdate }) => {
+      if (!message) return
+      invoke({
+        worker,
+        message,
+        history: llmContent.current,
+        state: stateKey.current,
+        sampler: samplerOptionsRef.current,
+      })
+      window.onUpdateBinding = onUpdate
+      window.onSuccessBinding = onSuccess
+    },
+  })
+
+  const { onRequest, messages } = useXChat({
+    agent,
+  })
+
+  const hasMessages = messages.length > 0
+  const hasStateVisual = stateVisual !== null
+  const [loaded] = useRecoilState(P.loaded)
+  const [stateVisualOpen, setStateVisualOpen] = useState(false)
+  const [stateVisualFull, setStateVisualFull] = useState(false)
+  const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
+  const [sampleOptionsCollapsed, setSampleOptionsCollapsed] = useState(true)
+  const { message: AppMessage } = App.useApp()
+  const [editingIndex, setEditingIndex] = useRecoilState(P.editingIndex)
+  const [editingText, setEditingText] = useRecoilState(P.editingText)
+
+  const initializeApp = () => {
+    worker.postMessage(JSON.stringify({ task: 'abort' }))
+    window.chat = onWorkerMessageReceived
+    console.log('✅ Chat worker callback set')
+  }
+
+  useEffect(() => {
+    initializeApp()
+  }, [])
+
   const updateSamplerOptions = (updated: SamplerOptions) => {
     setSamplerOptions(updated)
     samplerOptionsRef.current = updated
@@ -129,47 +170,6 @@ const Chat = () => {
         break
     }
   }
-
-  const initializeApp = () => {
-    worker.postMessage(JSON.stringify({ task: 'abort' }))
-    window.chat = onWorkerMessageReceived
-    console.log('✅ Chat worker callback set')
-  }
-
-  useEffect(() => {
-    initializeApp()
-  }, [])
-
-  // Agent for request
-  const [agent] = useXAgent({
-    request: async ({ message }, { onSuccess, onUpdate }) => {
-      if (!message) return
-      invoke({
-        worker,
-        message,
-        history: llmContent.current,
-        state: stateKey.current,
-        sampler: samplerOptionsRef.current,
-      })
-      window.onUpdateBinding = onUpdate
-      window.onSuccessBinding = onSuccess
-    },
-  })
-
-  const { onRequest, messages } = useXChat({
-    agent,
-  })
-
-  const hasMessages = messages.length > 0
-  const hasStateVisual = stateVisual !== null
-  const [loaded] = useRecoilState(P.loaded)
-  const [stateVisualOpen, setStateVisualOpen] = useState(false)
-  const [stateVisualFull, setStateVisualFull] = useState(false)
-  const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
-  const [sampleOptionsCollapsed, setSampleOptionsCollapsed] = useState(false)
-  const { message: AppMessage } = App.useApp()
-  const [editingIndex, setEditingIndex] = useRecoilState(P.editingIndex)
-  const [editingText, setEditingText] = useRecoilState(P.editingText)
 
   const onCopyButtonClick = (message: MessageInfo<string>) => {
     AppMessage.success('Copied to clipboard')
@@ -332,8 +332,8 @@ const Chat = () => {
     })
   }
 
-  const renderStateStats = () =>
-    stateVisual!.stats.flatMap((x) => {
+  const renderStateStats = () => {
+    return stateVisual!.stats.flatMap((x) => {
       return [
         {
           layer: x.layer,
@@ -350,9 +350,10 @@ const Chat = () => {
         },
       ]
     })
+  }
 
-  const renderStateImages = () =>
-    stateVisual!.images.map((line, layer) => (
+  const renderStateImages = () => {
+    return stateVisual!.images.map((line, layer) => (
       <Flex>
         <Text
           strong
@@ -371,6 +372,7 @@ const Chat = () => {
         </>
       </Flex>
     ))
+  }
 
   return (
     <Layout>
