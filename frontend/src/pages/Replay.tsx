@@ -147,6 +147,7 @@ const Replay = () => {
             setTokenTotal(0)
             setFrameIndex(0)
             setAnimationReady(false)
+            animation.current = []
           }}
         />
         {hasAnimation && <Progress percent={percent} />}
