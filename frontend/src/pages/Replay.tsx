@@ -226,8 +226,13 @@ const Replay = () => {
         </Flex>
         {hasAnimation && (
           <Row>
-            <Col span={2}></Col>
-            <Col span={20} ref={refFrameSlider}>
+            <Col span={1}></Col>
+            <Col span={2}>
+              <Text strong underline style={{ textAlign: 'right' }}>
+                {animation.current[frameIndex].word}
+              </Text>
+            </Col>
+            <Col span={18} ref={refFrameSlider}>
               <Slider
                 min={0}
                 max={animation.current.length - 1}
@@ -236,7 +241,7 @@ const Replay = () => {
                 value={frameIndex}
               />
             </Col>
-            <Col span={2}></Col>
+            <Col span={3}></Col>
           </Row>
         )}
       </Layout>
