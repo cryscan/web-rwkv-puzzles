@@ -115,7 +115,7 @@ const Replay = () => {
     ))
 
   return (
-    <Layout>
+    <Layout style={{ height: '100vh' }}>
       <Flex
         vertical
         gap='middle'
