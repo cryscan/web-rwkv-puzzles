@@ -63,6 +63,13 @@ const editingText = atom<string | undefined>({
   default: undefined,
 })
 
+// 2024-12-25
+// 2024-12-25-#1
+// 2024-12-25-#2
+// 2024-12-25-#3
+// ...
+const states: string[] = []
+
 export const P = {
   worker,
   modelLoaded,
@@ -77,4 +84,5 @@ export const P = {
   firstPrompt,
   editingIndex,
   editingText,
+  states,
 }
