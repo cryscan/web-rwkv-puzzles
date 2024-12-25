@@ -2,6 +2,7 @@ export declare global {
   interface Window {
     chat: (data: any) => void
     puzzle: (data: any) => void
+    music: (data: any) => void
 
     /**
      * Update binding for Ant Design X
