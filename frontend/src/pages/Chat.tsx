@@ -381,7 +381,7 @@ const Chat = () => {
                   icon={<CopyOutlined />}
                 />
               </Tooltip>
-              <Tooltip title='Edit'>
+              {/* <Tooltip title='Edit'>
                 <Button
                   color='default'
                   variant='text'
@@ -389,7 +389,7 @@ const Chat = () => {
                   icon={<EditOutlined />}
                   onClick={() => onEditButtonClick(message, index)}
                 />
-              </Tooltip>
+              </Tooltip> */}
             </>
           ) : undefined,
       }
