@@ -5,15 +5,18 @@ import reportWebVitals from './reportWebVitals'
 import { RecoilRoot } from 'recoil'
 import Root from './Root'
 import { HashRouter } from 'react-router-dom'
+import { App } from 'antd'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <HashRouter>
-    <RecoilRoot>
-      <React.StrictMode>
-        <Root />
-      </React.StrictMode>
-    </RecoilRoot>
+    <App>
+      <RecoilRoot>
+        <React.StrictMode>
+          <Root />
+        </React.StrictMode>
+      </RecoilRoot>
+    </App>
   </HashRouter>,
 )
 

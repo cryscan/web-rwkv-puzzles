@@ -1,4 +1,5 @@
 import { atom } from 'recoil'
+import { firstPrompt } from './state_chat_first_prompt'
 
 const worker = atom({
   key: 'chat_worker',
@@ -52,6 +53,16 @@ const remoteKey = atom({
     '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
 })
 
+const editingIndex = atom<string | number | null>({
+  key: 'editingIndex',
+  default: null,
+})
+
+const editingText = atom<string | undefined>({
+  key: 'editingText',
+  default: undefined,
+})
+
 export const P = {
   worker,
   modelLoaded,
@@ -63,4 +74,7 @@ export const P = {
   modelUrl,
   remoteUrl,
   remoteKey,
+  firstPrompt,
+  editingIndex,
+  editingText,
 }
