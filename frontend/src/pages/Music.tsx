@@ -19,11 +19,11 @@ export default function Music(): JSX.Element {
 
   return (
     <div className='w-full h-full flex flex-col gap-2 p-2'>
-      <div className='w-full h-40 border border-zinc-500 border-dashed rounded-lg'>
+      <div className='w-full h-40'>
         <Intro />
       </div>
 
-      <div className='w-full h-full border border-zinc-500 border-dashed rounded-lg'>
+      <div className='w-full h-full '>
         <Player />
       </div>
     </div>

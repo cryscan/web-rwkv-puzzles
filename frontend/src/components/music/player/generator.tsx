@@ -2,7 +2,7 @@ import { Button, Input, Select } from 'antd'
 import { useRecoilValue } from 'recoil'
 import { M } from '../../../pages/state_music'
 import { generateMusic } from '../../../func/music'
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 const { TextArea } = Input
 
@@ -12,14 +12,17 @@ const EXAMPLE_PROMPTS = {
   "Irish Jig": "X:1\nT:Irish Jig\nM:6/8\nL:1/8\nK:D\n"
 };
 
-export default function Generator() {
-  const [prompt, setPrompt] = useState(EXAMPLE_PROMPTS["Simple Melody"]);
+interface GeneratorProps {
+  prompt: string;
+  setPrompt: (prompt: string) => void;
+}
+
+export default function Generator({ prompt, setPrompt }: GeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const worker = useRecoilValue(M.worker)
   const loaded = useRecoilValue(M.loaded)
 
   const onClickGenerate = async () => {
-    console.log('onClickGenerate')
     if (!loaded) {
       alert('Please load the model first')
       return
@@ -33,6 +36,10 @@ export default function Generator() {
       setIsGenerating(false)
     }
   }
+
+  useEffect(() => {
+    setPrompt(EXAMPLE_PROMPTS["Simple Melody"])
+  }, [])
 
   return (
     <div className='w-full flex flex-col gap-2'>
