@@ -140,14 +140,14 @@ if ('function' === typeof importScripts) {
     }
   }
 
-  var _session: undefined | Promise<wasm_bindgen.Session> = undefined
+  var _session: undefined | wasm_bindgen.Session = undefined
   var _init_state: undefined | Float32Array = undefined
   var _states: Map<string, Float32Array> = new Map()
   var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
   var _abort = false
 
   async function run(message: string, window: Window) {
-    if ((await _session) === undefined) {
+    if (_session === undefined) {
       window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
@@ -170,7 +170,7 @@ if ('function' === typeof importScripts) {
     } = options
 
     const tokenizer = await initTokenizer(vocab)
-    const session = await _session!
+    const session = _session!
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
@@ -227,7 +227,7 @@ if ('function' === typeof importScripts) {
   }
 
   async function replay(message: string, window: Window) {
-    if ((await _session) === undefined) {
+    if (_session === undefined) {
       window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
@@ -239,7 +239,7 @@ if ('function' === typeof importScripts) {
     const { prompt, vocab } = options
 
     const tokenizer = await initTokenizer(vocab)
-    const session = await _session!
+    const session = _session!
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
@@ -294,12 +294,12 @@ if ('function' === typeof importScripts) {
   }
 
   async function info(window: Window) {
-    if ((await _session) === undefined) {
+    if (_session === undefined) {
       window.postMessage(null)
       return
     }
 
-    const session = await _session!
+    const session = _session!
     window.postMessage({
       type: 'info',
       info: session.info(),
@@ -314,7 +314,7 @@ if ('function' === typeof importScripts) {
         console.log('🔄 Loading model')
         console.log(`📌 Session type: ${config.session_type}`)
         let blob = new Blob(e.data)
-        _session = initSession(blob)
+        _session = await initSession(blob)
         return
       }
 

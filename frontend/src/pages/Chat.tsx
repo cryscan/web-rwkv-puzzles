@@ -677,6 +677,7 @@ const Info = () => {
   const modelUrl = useRecoilValue(P.modelUrl)
   const remoteUrl = useRecoilValue(P.remoteUrl)
   const remoteKey = useRecoilValue(P.remoteKey)
+  const [heartBeatSet, setHeartBeatSet] = useRecoilState(P.heartBeatSet)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.modelLoaded)
@@ -726,9 +727,13 @@ const Info = () => {
   }
 
   const initializeApp = () => {
-    setInterval(() => {
-      worker.postMessage(JSON.stringify({ task: 'info' }))
-    }, 1000)
+    if (!heartBeatSet) {
+      const heartBeat = () => {
+        worker.postMessage(JSON.stringify({ task: 'info' }))
+      }
+      setInterval(heartBeat, 1000)
+      setHeartBeatSet(true)
+    }
   }
 
   useEffect(() => {

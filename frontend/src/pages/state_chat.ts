@@ -25,7 +25,7 @@ const loadedSize = atom({
   default: 0,
 })
 
-const loadProgress = atom({
+const loadedProgress = atom({
   key: 'loadProgress',
   default: 0,
 })
@@ -47,14 +47,20 @@ const remoteKey = atom({
     '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
 })
 
+const heartBeatSet = atom({
+  key: 'heartBeatSet',
+  default: false,
+})
+
 export const P = {
   worker,
   modelLoaded,
   modelLoading,
   modelSize,
   loadedSize,
-  loadedProgress: loadProgress,
+  loadedProgress,
   modelUrl,
   remoteUrl,
   remoteKey,
+  heartBeatSet,
 }
