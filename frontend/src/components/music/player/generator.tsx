@@ -42,7 +42,7 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
   }, [])
 
   return (
-    <div className='w-full flex flex-col gap-2'>
+    <div className='w-full h-full flex flex-col gap-2'>
       <Select
         defaultValue="Simple Melody"
         onChange={(value) => setPrompt(EXAMPLE_PROMPTS[value as keyof typeof EXAMPLE_PROMPTS])}
@@ -51,20 +51,25 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
           label: key
         }))}
       />
-      <TextArea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter ABC notation..."
-        rows={4}
-      />
-      <Button
-        type="primary"
-        onClick={onClickGenerate}
-        disabled={!loaded || !prompt || isGenerating}
-        loading={isGenerating}
-      >
-        {isGenerating ? 'Generating...' : 'Generate Music'}
-      </Button>
+
+        <TextArea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter ABC notation..."
+          rows={4}
+          className='h-full'
+        />
+      <div className='w-full  mt-auto'>
+        <Button
+          type="primary"
+          onClick={onClickGenerate}
+          disabled={!loaded || !prompt || isGenerating}
+          loading={isGenerating}
+          className='w-full'
+        >
+          {isGenerating ? 'Generating...' : 'Generate Music'}
+        </Button>
+      </div>
     </div>
   )
 }
