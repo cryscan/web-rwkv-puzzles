@@ -1,7 +1,6 @@
 import { Sender } from '@ant-design/x'
 import {
   Affix,
-  Button,
   Col,
   Flex,
   Image,
@@ -9,7 +8,6 @@ import {
   Progress,
   Row,
   Slider,
-  Space,
   Switch,
   Tabs,
   Tour,
@@ -18,16 +16,10 @@ import { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { Typography } from 'antd'
-import { StateVisual } from '../func/gluon'
+import { Frame } from '../func/type'
 import { Violin } from '@ant-design/charts'
 
-const { Text, Title } = Typography
-
-interface Frame {
-  word: string
-  history: string
-  visual: StateVisual
-}
+const { Text } = Typography
 
 const Replay = () => {
   const [content, setContent] = useState('')
@@ -93,7 +85,7 @@ const Replay = () => {
 
   const hasAnimation = animation.current.length > 0
   const percent = Math.round((tokenIndex / (tokenTotal - 1)) * 100)
-  const [loaded] = useRecoilState(P.loaded)
+  const [loaded] = useRecoilState(P.modelLoaded)
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
   const [frameIndex, setFrameIndex] = useState(0)
 

@@ -149,8 +149,7 @@ if ('function' === typeof importScripts) {
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      window.postMessage('Error: Model is not loaded.')
-      console.warn('Model is not loaded.')
+      console.warn('⚠️ Model not loaded.')
       return
     }
 
@@ -230,8 +229,7 @@ if ('function' === typeof importScripts) {
   async function replay(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      window.postMessage('Error: Model is not loaded.')
-      console.warn('Model is not loaded.')
+      console.warn('⚠️ Model not loaded.')
       return
     }
 
@@ -295,15 +293,42 @@ if ('function' === typeof importScripts) {
     console.log(`✅ State ${source} cloned to ${destination}`)
   }
 
+  async function info(window: Window) {
+    if ((await _session) === undefined) {
+      window.postMessage(null)
+      return
+    }
+
+    const session = await _session!
+    window.postMessage({
+      type: 'info',
+      info: session.info(),
+    })
+  }
+
+  async function load(data: Uint8Array[], window: Window) {
+    console.log('🔄 Loading model')
+    console.log(`📌 Session type: ${config.session_type}`)
+    let blob = new Blob(data)
+    _session = initSession(blob)
+    try {
+      await _session
+    } catch (error) {
+      _session = undefined
+      window.postMessage({
+        type: 'error',
+        error,
+      })
+    }
+    return
+  }
+
   this.addEventListener(
     'message',
     async function (e: MessageEvent<Uint8Array[] | String>) {
       // Load model
       if (e.data instanceof Array) {
-        console.log('🔄 Loading model')
-        console.log(`📌 Session type: ${config.session_type}`)
-        let blob = new Blob(e.data)
-        _session = initSession(blob)
+        load(e.data, this)
         return
       }
 
@@ -334,6 +359,10 @@ if ('function' === typeof importScripts) {
           case 'abort':
             _abort = true
             console.log('🔴 Abort received')
+            break
+          case 'info':
+            console.log('✅ Info received')
+            info(this)
             break
           default:
             console.warn(`🤔 Invalid task: ${task}`)
