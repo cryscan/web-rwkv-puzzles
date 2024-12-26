@@ -36,13 +36,13 @@ import {
 import React, { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import { loadData } from '../func/load'
+import { loadData, loadFile } from '../func/load'
 import { setupWorker } from '../setup_worker'
 import { Violin } from '@ant-design/charts'
 import Markdown from 'react-markdown'
 import Sider from 'antd/es/layout/Sider'
 import { Typography } from 'antd'
-import { SamplerOptions, StateVisual } from '../func/gluon'
+import { SamplerOptions, StateVisual } from '../func/type'
 import Dragger from 'antd/es/upload/Dragger'
 
 const { Text, Title } = Typography
@@ -202,6 +202,9 @@ const Chat = () => {
   const llmContent = React.useRef('')
 
   const worker = useRecoilValue(P.worker)
+  const [, setLoading] = useRecoilState(P.modelLoading)
+  const [, setLoaded] = useRecoilState(P.modelLoaded)
+
   const stateKey = useRef(new Date().toUTCString())
   const [, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
@@ -222,6 +225,10 @@ const Chat = () => {
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
     switch (event.type) {
+      case 'info':
+        setLoading(false)
+        setLoaded(true)
+        break
       case 'state':
         console.log('✅ State updated')
         const { state, visual } = event
@@ -274,7 +281,7 @@ const Chat = () => {
 
   const hasMessages = messages.length > 0
   const hasStateVisual = stateVisual !== null
-  const [loaded] = useRecoilState(P.loaded)
+  const [loaded] = useRecoilState(P.modelLoaded)
   const [stateVisualOpen, setStateVisualOpen] = useState(false)
   const [stateVisualFull, setStateVisualFull] = useState(false)
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
@@ -672,7 +679,7 @@ const Info = () => {
   const remoteKey = useRecoilValue(P.remoteKey)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
-  const [loaded, setLoaded] = useRecoilState(P.loaded)
+  const [loaded, setLoaded] = useRecoilState(P.modelLoaded)
   const [progress] = useRecoilState(P.loadedProgress)
   const [contentLength, setContentLength] = useRecoilState(P.modelSize)
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
@@ -696,9 +703,37 @@ const Info = () => {
       },
     )
     await setupWorker(worker, chunks, 'chat')
-    setLoading(false)
-    setLoaded(true)
   }
+
+  const onUploadModel = async (file: any) => {
+    if (file instanceof File) {
+      setLoading(true)
+      setLoaded(false)
+      const chunks = await loadFile(
+        file,
+        (progress) => {
+          setLoadedProgress(progress)
+        },
+        (contentLength) => {
+          setContentLength(contentLength)
+        },
+        (loadedLength) => {
+          setLoadedLength(loadedLength)
+        },
+      )
+      await setupWorker(worker, chunks, 'chat')
+    }
+  }
+
+  const initializeApp = () => {
+    setInterval(() => {
+      worker.postMessage(JSON.stringify({ task: 'info' }))
+    }, 1000)
+  }
+
+  useEffect(() => {
+    initializeApp()
+  })
 
   return (
     <div
@@ -774,7 +809,7 @@ const Info = () => {
         />
       )}
       {!loaded && !loading && (
-        <Dragger>
+        <Dragger customRequest={(options) => onUploadModel(options.file)}>
           <p className='ant-upload-drag-icon'>
             <InboxOutlined />
           </p>

@@ -15,11 +15,6 @@ const modelLoading = atom({
   default: false,
 })
 
-const loaded = atom({
-  key: 'loaded',
-  default: false,
-})
-
 const modelSize = atom({
   key: 'modelSize',
   default: 0,
@@ -30,8 +25,8 @@ const loadedSize = atom({
   default: 0,
 })
 
-const loadedProgress = atom({
-  key: 'loadedProgress',
+const loadProgress = atom({
+  key: 'loadProgress',
   default: 0,
 })
 
@@ -56,10 +51,9 @@ export const P = {
   worker,
   modelLoaded,
   modelLoading,
-  loaded,
   modelSize,
   loadedSize,
-  loadedProgress,
+  loadedProgress: loadProgress,
   modelUrl,
   remoteUrl,
   remoteKey,

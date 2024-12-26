@@ -18,3 +18,9 @@ export interface StateHeadStats {
   head: number
   bins: number[]
 }
+
+export interface Frame {
+  word: string
+  history: string
+  visual: StateVisual
+}

@@ -149,8 +149,7 @@ if ('function' === typeof importScripts) {
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      window.postMessage('Error: Model is not loaded.')
-      console.warn('Model is not loaded.')
+      console.warn('⚠️ Model not loaded.')
       return
     }
 
@@ -230,8 +229,7 @@ if ('function' === typeof importScripts) {
   async function replay(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      window.postMessage('Error: Model is not loaded.')
-      console.warn('Model is not loaded.')
+      console.warn('⚠️ Model not loaded.')
       return
     }
 
@@ -295,6 +293,19 @@ if ('function' === typeof importScripts) {
     console.log(`✅ State ${source} cloned to ${destination}`)
   }
 
+  async function info(window: Window) {
+    if ((await _session) === undefined) {
+      window.postMessage(null)
+      return
+    }
+
+    const session = await _session!
+    window.postMessage({
+      type: 'info',
+      info: session.info(),
+    })
+  }
+
   this.addEventListener(
     'message',
     async function (e: MessageEvent<Uint8Array[] | String>) {
@@ -334,6 +345,10 @@ if ('function' === typeof importScripts) {
           case 'abort':
             _abort = true
             console.log('🔴 Abort received')
+            break
+          case 'info':
+            console.log('✅ Info received')
+            info(this)
             break
           default:
             console.warn(`🤔 Invalid task: ${task}`)
