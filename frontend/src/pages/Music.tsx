@@ -18,12 +18,12 @@ export default function Music(): JSX.Element {
   ]
 
   return (
-    <div className='w-full h-full flex flex-col gap-2 p-2'>
-      <div className='w-full h-40'>
+    <div className='w-full h-[calc(100vh-48px)] overflow-y-hidden flex flex-col gap-2 p-2 bg-zinc-100'>
+      <div className='w-full h-40 flex shrink-0'>
         <Intro />
       </div>
 
-      <div className='w-full h-full '>
+      <div className='w-full flex-grow overflow-y-hidden'>
         <Player />
       </div>
     </div>
