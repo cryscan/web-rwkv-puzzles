@@ -81,14 +81,14 @@ if ('function' === typeof importScripts) {
 
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
-    console.log('Attempting to load tokenizer from:', url)  // 添加日志
+    console.log('Attempting to load tokenizer from:', url)
     const req = await fetch(url)
-    if (!req.ok) {  // 添加错误检查
+    if (!req.ok) {
       console.error(`Failed to load tokenizer: ${req.status} ${req.statusText}`)
       throw new Error(`Failed to load tokenizer from ${url}`)
     }
     const vocab = await req.text()
-    console.log(`📌 Tokenizer length:`, vocab.length)  // 添加日志
+    console.log(`📌 Tokenizer length:`, vocab.length)
 
     const tokenizer = new wasm_bindgen.Tokenizer(vocab)
     _tokenizers.set(url, tokenizer)
