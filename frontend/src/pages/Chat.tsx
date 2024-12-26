@@ -441,7 +441,13 @@ const Chat = () => {
         }}
       >
         {!hasMessages && <Info />}
-        {hasMessages && <Bubble.List roles={roles} items={renderMessages()} />}
+        {hasMessages && (
+          <Bubble.List
+            style={{ flex: 1 }}
+            roles={roles}
+            items={renderMessages()}
+          />
+        )}
         {loaded && !hasMessages && (
           <Prompts
             title='✨ Inspirational Sparks and Marvelous Tips'
