@@ -24,6 +24,7 @@ pub const TOKEN_CHUNK_SIZE: usize = 128;
 pub enum SessionType {
     Puzzle,
     Chat,
+    Music,
 }
 
 /// We need to slightly modify the model structure using hooks.
@@ -74,38 +75,43 @@ impl Session {
             .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
             .collect();
         let builder = ModelBuilder::new(&context, model).quant(quant);
+        let rescale_layer = match ty {
+            SessionType::Chat => 6,
+            SessionType::Puzzle | SessionType::Music => 999, // = no rescale
+        };
         let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
                 let hooks = make_puzzle_hooks(&info)?;
-                let model = builder.build_v6().await?;
+                let model = builder.rescale(rescale_layer).build_v6().await?;
                 let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
                 let state = bundle.state();
                 let runtime = SimpleRuntime::new(bundle);
                 (Box::new(runtime), Box::new(state))
             }
-            SessionType::Chat => match info.version {
+            SessionType::Chat | SessionType::Music => match info.version {
                 ModelVersion::V4 => {
-                    let model = builder.build_v4().await?;
+                    let model = builder.rescale(rescale_layer).build_v4().await?;
                     let bundle = v4::Bundle::<f16>::new(model, 1);
                     let state = bundle.state();
                     let runtime = SimpleRuntime::new(bundle);
                     (Box::new(runtime), Box::new(state))
                 }
                 ModelVersion::V5 => {
-                    let model = builder.build_v5().await?;
+                    let model = builder.rescale(rescale_layer).build_v5().await?;
                     let bundle = v5::Bundle::<f16>::new(model, 1);
                     let state = bundle.state();
                     let runtime = SimpleRuntime::new(bundle);
                     (Box::new(runtime), Box::new(state))
                 }
                 ModelVersion::V6 => {
-                    let model = builder.build_v6().await?;
+                    let model = builder.rescale(rescale_layer).build_v6().await?;
                     let bundle = v6::Bundle::<f16>::new(model, 1);
                     let state = bundle.state();
                     let runtime = SimpleRuntime::new(bundle);
                     (Box::new(runtime), Box::new(state))
                 }
                 ModelVersion::V7 => {
+                    // no rescale needed for v7 models
                     let model = builder.build_v7().await?;
                     let bundle = v7::Bundle::<f16>::new(model, 1);
                     let state = bundle.state();
