@@ -5,10 +5,18 @@ import 'abcjs/abcjs-audio.css';
 export default function MusicSheet({ music }: { music: string }) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const [synth, setSynth] = useState<any>(null);
+  const [synthControl, setSynthControl] = useState<any>(null);
   const endOfSheetRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const resetAudio = () => {
+    if (synthControl) {
+      synthControl.pause();
+      synthControl.restart();
+    }
+  };
 
+  useEffect(() => {
+    resetAudio();
     if (endOfSheetRef.current) {
       endOfSheetRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -16,26 +24,27 @@ export default function MusicSheet({ music }: { music: string }) {
 
   useEffect(() => {
     if (sheetRef.current) {
-      // 渲染乐谱
+      // Render the sheet
       const visualObj = abcjs.renderAbc(sheetRef.current, music, {
         add_classes: true,
         responsive: 'resize'
       });
 
-      // 初始化合成器
-      const synthControl = new abcjs.synth.SynthController();
-      synthControl.load('#audio-controls', null, {
+      // Initialize the synth
+      const control = new abcjs.synth.SynthController();
+      setSynthControl(control);
+      control.load('#audio-controls', null, {
         displayLoop: true,
         displayRestart: true,
         displayPlay: true,
         displayProgress: true,
       });
 
-      // 创建音频合成器
+      // Create the audio synthesizer
       const createSynth = new abcjs.synth.CreateSynth();
       createSynth.init({ visualObj: visualObj[0] }).then(() => {
         setSynth(createSynth);
-        synthControl.setTune(visualObj[0], false);
+        control.setTune(visualObj[0], false);
       });
     }
   }, [music]);
