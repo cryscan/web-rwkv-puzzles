@@ -158,6 +158,7 @@ if ('function' === typeof importScripts) {
           probs = output
           break
         case SessionType.Chat:
+        case SessionType.Music:
           sampler.transform(output)
           await session.softmax(output, probs)
           break
@@ -215,6 +216,7 @@ if ('function' === typeof importScripts) {
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
     switch (session.session_type()) {
       case SessionType.Chat:
+      case SessionType.Music:
         sampler = new NucleusSampler(
           info,
           temperature,
@@ -370,7 +372,7 @@ if ('function' === typeof importScripts) {
                 config.session_type = SessionType.Chat
                 break
               case 'music':
-                config.session_type = SessionType.Chat
+                config.session_type = SessionType.Music
                 break
             }
             break
