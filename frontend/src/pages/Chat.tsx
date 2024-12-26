@@ -229,6 +229,11 @@ const Chat = () => {
         setLoading(false)
         setLoaded(true)
         break
+      case 'error':
+        setLoading(false)
+        setLoaded(false)
+        alert(`Model loading error: ${event.error}`)
+        break
       case 'state':
         console.log('✅ State updated')
         const { state, visual } = event

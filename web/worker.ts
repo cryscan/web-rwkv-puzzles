@@ -140,14 +140,14 @@ if ('function' === typeof importScripts) {
     }
   }
 
-  var _session: undefined | wasm_bindgen.Session = undefined
+  var _session: undefined | Promise<wasm_bindgen.Session> = undefined
   var _init_state: undefined | Float32Array = undefined
   var _states: Map<string, Float32Array> = new Map()
   var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
   var _abort = false
 
   async function run(message: string, window: Window) {
-    if (_session === undefined) {
+    if ((await _session) === undefined) {
       window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
@@ -170,7 +170,7 @@ if ('function' === typeof importScripts) {
     } = options
 
     const tokenizer = await initTokenizer(vocab)
-    const session = _session!
+    const session = await _session!
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
@@ -227,7 +227,7 @@ if ('function' === typeof importScripts) {
   }
 
   async function replay(message: string, window: Window) {
-    if (_session === undefined) {
+    if ((await _session) === undefined) {
       window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
@@ -239,7 +239,7 @@ if ('function' === typeof importScripts) {
     const { prompt, vocab } = options
 
     const tokenizer = await initTokenizer(vocab)
-    const session = _session!
+    const session = await _session!
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
@@ -294,16 +294,33 @@ if ('function' === typeof importScripts) {
   }
 
   async function info(window: Window) {
-    if (_session === undefined) {
+    if ((await _session) === undefined) {
       window.postMessage(null)
       return
     }
 
-    const session = _session!
+    const session = await _session!
     window.postMessage({
       type: 'info',
       info: session.info(),
     })
+  }
+
+  async function load(data: Uint8Array[], window: Window) {
+    console.log('🔄 Loading model')
+    console.log(`📌 Session type: ${config.session_type}`)
+    let blob = new Blob(data)
+    _session = initSession(blob)
+    try {
+      await _session
+    } catch (error) {
+      _session = undefined
+      window.postMessage({
+        type: 'error',
+        error,
+      })
+    }
+    return
   }
 
   this.addEventListener(
@@ -311,10 +328,7 @@ if ('function' === typeof importScripts) {
     async function (e: MessageEvent<Uint8Array[] | String>) {
       // Load model
       if (e.data instanceof Array) {
-        console.log('🔄 Loading model')
-        console.log(`📌 Session type: ${config.session_type}`)
-        let blob = new Blob(e.data)
-        _session = await initSession(blob)
+        load(e.data, this)
         return
       }
 
