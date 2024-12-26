@@ -790,6 +790,14 @@ const Info = () => {
           Web-RWKV
         </a>
         , so no data is sent to a server. Once loaded, it can be used offline.
+        Alternatively, download converted safetensors model from{' '}
+        <a
+          style={{ fontWeight: 700 }}
+          href='https://huggingface.co/cgisky/ai00_rwkv_x060/tree/main'
+        >
+          HuggingFace
+        </a>{' '}
+        and load locally.
       </div>
       <div style={{ maxWidth: 410, textAlign: 'left' }}>
         Note that this demo runs on WebGPU so make sure that your browser
@@ -835,7 +843,7 @@ const Info = () => {
           onClick={onClickLoadModel}
           loading={loading}
         >
-          {loading ? 'Loading...' : 'Load Model'}
+          {loading ? 'Loading...' : 'Load Model Online'}
         </Button>
       )}
     </div>
