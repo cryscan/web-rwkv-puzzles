@@ -106,7 +106,7 @@ if ('function' === typeof importScripts) {
       throw new Error(`Failed to load tokenizer from ${url}`)
     }
     const vocab = await req.text()
-    console.log(`📌 Tokenizer content:`, vocab)  // 添加日志
+    console.log(`📌 Tokenizer length:`, vocab.length)  // 添加日志
 
     const tokenizer = new wasm_bindgen.Tokenizer(vocab)
     _tokenizers.set(url, tokenizer)
