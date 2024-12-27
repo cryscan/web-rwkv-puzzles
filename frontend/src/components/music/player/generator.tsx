@@ -3,14 +3,19 @@ import { useRecoilValue } from 'recoil'
 import { M } from '../../../pages/state_music'
 import { generateMusic } from '../../../func/music'
 import { useState, useEffect } from 'react'
+import { prompts } from '../../music/assets/example-prompts'
 
 const { TextArea } = Input
 
-const EXAMPLE_PROMPTS = {
-  "Simple Melody": "X:1\nT:Simple Melody\nM:4/4\nL:1/4\nK:C\n",
-  "Waltz": "X:1\nT:Waltz\nM:3/4\nL:1/4\nK:G\n",
-  "Irish Jig": "X:1\nT:Irish Jig\nM:6/8\nL:1/8\nK:D\n"
-};
+interface Prompt {
+  name: string;
+  prompt: string;
+}
+
+const EXAMPLE_PROMPTS: Prompt[] = prompts.map((prompt) => ({
+  name: prompt.name,
+  prompt: prompt.prompt
+}))
 
 interface GeneratorProps {
   prompt: string;
@@ -38,17 +43,22 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
   }
 
   useEffect(() => {
-    setPrompt(EXAMPLE_PROMPTS["Simple Melody"])
+    setPrompt(EXAMPLE_PROMPTS[0].prompt)
   }, [])
 
   return (
     <div className='w-full h-full flex flex-col gap-2'>
       <Select
-        defaultValue="Simple Melody"
-        onChange={(value) => setPrompt(EXAMPLE_PROMPTS[value as keyof typeof EXAMPLE_PROMPTS])}
-        options={Object.keys(EXAMPLE_PROMPTS).map(key => ({
-          value: key,
-          label: key
+        defaultValue={EXAMPLE_PROMPTS[0].name}
+        onChange={(value: string) => {
+          const selectedPrompt = EXAMPLE_PROMPTS.find(p => p.name === value);
+          if (selectedPrompt) {
+            setPrompt(selectedPrompt.prompt);
+          }
+        }}
+        options={EXAMPLE_PROMPTS.map((prompt: Prompt) => ({
+          value: prompt.name,
+          label: prompt.name
         }))}
       />
 
