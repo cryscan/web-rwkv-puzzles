@@ -35,7 +35,11 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
     setIsGenerating(true)
     console.log('Generating music...')
     try {
-      await generateMusic(worker, prompt)
+      if (worker) {
+        await generateMusic(worker, prompt)
+      } else {
+        throw new Error('Worker is not available');
+      }
     } finally {
       console.log('Music generation completed')
       setIsGenerating(false)
@@ -44,6 +48,13 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
 
   useEffect(() => {
     setPrompt(EXAMPLE_PROMPTS[0].prompt)
+
+    return () => {
+      if (worker && isGenerating) {
+        worker.terminate()
+        setIsGenerating(false)
+      }
+    }
   }, [])
 
   return (

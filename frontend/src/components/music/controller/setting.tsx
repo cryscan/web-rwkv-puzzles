@@ -35,7 +35,11 @@ export default function Setting() {
         setLoadedLength(loadedLength)
       },
     )
-    await setupWorker(worker, chunks, 'music')
+    if (worker) {
+      await setupWorker(worker, chunks, 'music')
+    } else {
+      throw new Error('Worker is not available');
+    }
     setLoading(false)
     setLoaded(true)
   }

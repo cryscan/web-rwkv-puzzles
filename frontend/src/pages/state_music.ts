@@ -2,7 +2,15 @@ import { atom } from 'recoil'
 
 const worker = atom({
   key: 'music_worker',
-  default: new Worker('llm/worker.js'),
+  default: null as Worker | null,
+  effects: [
+    ({ setSelf }) => {
+      setSelf(new Worker('llm/worker.js'))
+      return () => {
+        setSelf(null)
+      }
+    }
+  ]
 })
 
 const modelLoaded = atom({
@@ -43,7 +51,7 @@ const modelUrl = atom({
 const remoteUrl = atom({
   key: 'music_remoteUrl',
   default:
-    'https://api-image.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+    'https://api-image.rwkvos.com/download/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
 })
 
 const remoteKey = atom({
