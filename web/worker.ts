@@ -128,6 +128,7 @@ if ('function' === typeof importScripts) {
           probs = logits
           break
         case SessionType.Chat:
+        case SessionType.Music:
           sampler.transform(logits)
           await session.softmax(logits, probs)
           break
@@ -194,6 +195,7 @@ if ('function' === typeof importScripts) {
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
     switch (session.session_type()) {
       case SessionType.Chat:
+      case SessionType.Music:
         sampler = new NucleusSampler(
           info,
           temperature,
@@ -209,7 +211,11 @@ if ('function' === typeof importScripts) {
     }
 
     console.log(prompt)
-    const tokens = tokenizer.encode(encoder.encode(prompt))
+    let tokens = tokenizer.encode(encoder.encode(prompt))
+    if (session.session_type() == SessionType.Music) {
+      // append bos_token to the beginning of the tokens for music generation
+      tokens = new Uint16Array([2, ...tokens])
+    }
 
     await window.navigator.locks.request('model', async (lock) => {
       const p = pipeline(session, tokens, sampler, stop_tokens, max_len)
@@ -330,7 +336,7 @@ if ('function' === typeof importScripts) {
                 config.session_type = SessionType.Chat
                 break
               case 'music':
-                config.session_type = SessionType.Chat
+                config.session_type = SessionType.Music
                 break
             }
             break
