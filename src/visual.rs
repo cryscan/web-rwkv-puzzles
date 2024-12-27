@@ -88,36 +88,6 @@ impl StateVisual {
             })
             .collect();
 
-        // let images = stats
-        //     .iter()
-        //     .filter_map(|&StateStats { layer, head, bins }| {
-        //         let key = (layer, head);
-        //         let data = heads.get(&key)?;
-
-        //         assert_eq!(data.len(), head_size * head_size);
-        //         let h = head_size as u32;
-        //         const SCALE: u32 = 4;
-
-        //         let [q0, q1, _, q3, q4] = bins;
-        //         let r13 = (q3 - q1).max(f32::EPSILON);
-        //         let r04 = (q4 - q0).max(f32::EPSILON);
-
-        //         let mut image = RgbImage::new(SCALE * h, SCALE * h);
-        //         for (y, x) in (0..SCALE * h).cartesian_product(0..SCALE * h) {
-        //             let pixel = image.get_pixel_mut(x, y);
-        //             let index = (y / SCALE * h + x / SCALE) as usize;
-        //             let value = data[index];
-
-        //             let r = ((value - q1) / r13).clamp(0.0, 1.0) * 255.0;
-        //             let b = ((value - q0) / r04).clamp(0.0, 1.0) * 255.0;
-        //             pixel.0 = [r as u8, r as u8, b as u8];
-        //         }
-
-        //         Some(StateImage { layer, head, image })
-        //     })
-        //     .map(Into::into)
-        //     .collect_vec();
-
         let mut images = Vec::with_capacity(num_layer);
         for layer in 0..num_layer {
             let mut line = Vec::with_capacity(num_head);
