@@ -46,6 +46,13 @@ export default function MusicSheet({ music }: { music: string }) {
         setSynth(createSynth);
         control.setTune(visualObj[0], false);
       });
+
+      // 清理函数：组件卸载时停止音乐
+      return () => {
+        if (control) {
+          control.pause();
+        }
+      };
     }
   }, [music]);
 
