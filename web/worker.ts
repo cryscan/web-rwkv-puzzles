@@ -237,7 +237,7 @@ if ('function' === typeof importScripts) {
     })
 
     const state = new Float32Array(session.state_len())
-    session.back(state)
+    await session.back(state)
 
     const visual = JSON.parse(new StateVisual(info, state).json())
     window.postMessage({
