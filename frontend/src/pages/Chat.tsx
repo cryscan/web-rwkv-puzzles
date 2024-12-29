@@ -47,7 +47,7 @@ import Dragger from 'antd/es/upload/Dragger'
 
 const { Text, Title } = Typography
 
-const assistant = `User: Hi!
+const intro = `User: Hi!
 
 Assistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.
 
@@ -200,6 +200,7 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
 const Chat = () => {
   const [content, setContent] = React.useState('')
   const llmContent = React.useRef('')
+  const chatHistory = React.useRef<string[]>([])
 
   const worker = useRecoilValue(P.worker)
   const [, setLoading] = useRecoilState(P.modelLoading)
@@ -244,6 +245,7 @@ const Chat = () => {
         const { word, token } = event
         if (stops.includes(token)) {
           console.log(llmContent.current)
+          chatHistory.current.push(llmContent.current)
           window.onSuccessBinding(llmContent.current)
         } else {
           llmContent.current += word
@@ -267,10 +269,10 @@ const Chat = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
+      chatHistory.current.push(message)
       invoke(
         worker,
-        message,
-        llmContent.current,
+        chatHistory.current,
         stateKey.current,
         samplerOptionsRef.current,
       )
@@ -646,16 +648,23 @@ const Chat = () => {
 
 const invoke = (
   worker: Worker,
-  message: string,
-  history: string,
+  history: string[],
   state: string,
   sampler: SamplerOptions,
 ) => {
-  let prompt: string
-  if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
-  else if (history.length >= 2 && history.slice(-2) === '\n\n')
-    prompt = `User: ${message}\n\nAssistant:`
-  else prompt = `\n\nUser: ${message}\n\nAssistant:`
+  // let prompt: string
+  // if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
+  // else if (history.length >= 2 && history.slice(-2) === '\n\n')
+  //   prompt = `User: ${message}\n\nAssistant:`
+  // else prompt = `\n\nUser: ${message}\n\nAssistant:`
+
+  let prompt = history
+    .map((text, index) => {
+      const role = index % 2 === 0 ? 'User' : 'Assistant'
+      return `${role}: ${text.trim()}`
+    })
+    .join('\n\n')
+  prompt = `${intro}\n\n${prompt}\n\nAssistant:`
 
   const { temperature, top_p, presence_penalty, count_penalty, half_life } =
     sampler
@@ -843,7 +852,7 @@ const Info = () => {
           onClick={onClickLoadModel}
           loading={loading}
         >
-          {loading ? 'Loading...' : 'Load Model Online'}
+          {loading ? 'Loading...' : 'Load Model'}
         </Button>
       )}
     </div>

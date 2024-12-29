@@ -1,5 +1,4 @@
 if ('function' === typeof importScripts) {
-  importScripts('common.js')
   importScripts('web_rwkv_puzzles.js')
 
   const {
@@ -20,7 +19,6 @@ if ('function' === typeof importScripts) {
   interface Options {
     max_len: number
     prompt: string
-    state_key: string
     stop_tokens: number[]
     temperature: number
     top_p: number
@@ -32,6 +30,26 @@ if ('function' === typeof importScripts) {
 
   const config = {
     session_type: SessionType.Chat,
+  }
+
+  function getUint64(
+    dataview: DataView,
+    byteOffset: number,
+    littleEndian?: boolean,
+  ) {
+    // split 64-bit number into two 32-bit (4-byte) parts
+    const left = dataview.getUint32(byteOffset, littleEndian)
+    const right = dataview.getUint32(byteOffset + 4, littleEndian)
+
+    // combine the two 32-bit values
+    const combined = littleEndian
+      ? left + 2 ** 32 * right
+      : 2 ** 32 * left + right
+
+    if (!Number.isSafeInteger(combined))
+      console.warn(combined, 'exceeds MAX_SAFE_INTEGER. Precision may be lost')
+
+    return combined
   }
 
   async function initReader(blob: Blob) {
@@ -112,19 +130,31 @@ if ('function' === typeof importScripts) {
     max_len: number,
   ) {
     const info = session.info()
-    let logits = new Float32Array(info.num_vocab)
+    let output = new Float32Array(info.num_vocab)
     let probs = new Float32Array(info.num_vocab)
 
+    const state = new Float32Array(session.state_len())
+    const cutoff = session.checkout(tokens, state, output)
+    session.load(state)
+
+    console.log(`📌 State cache checkout: ${cutoff}/${tokens.length}`)
+    let history = Array.from(tokens.slice(0, cutoff))
+    tokens = tokens.slice(cutoff)
+
     for (var i = 0; i < max_len; ++i) {
-      await session.run(tokens, logits)
+      if (tokens.length > 0) {
+        await session.run(tokens, output)
+      }
+
+      history = history.concat(Array.from(tokens))
 
       switch (session.session_type()) {
         case SessionType.Puzzle:
-          probs = logits
+          probs = output
           break
         case SessionType.Chat:
-          sampler.transform(logits)
-          await session.softmax(logits, probs)
+          sampler.transform(output)
+          await session.softmax(output, probs)
           break
       }
 
@@ -132,19 +162,22 @@ if ('function' === typeof importScripts) {
       tokens = new Uint16Array([token])
       sampler.update(tokens)
 
-      yield token
+      yield token, output
 
       if (stop_tokens.includes(token)) {
         break
       }
     }
+
+    if (history.length > 0) {
+      await session.back(state)
+      session.cache(new Uint16Array(history), state, output)
+      console.log(`📌 State cache check-in: ${history.length}`)
+    }
   }
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
-  var _init_state: undefined | Float32Array = undefined
-  var _states: Map<string, Float32Array> = new Map()
   var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
-  var _abort = false
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
@@ -159,7 +192,6 @@ if ('function' === typeof importScripts) {
     const {
       max_len,
       prompt,
-      state_key,
       stop_tokens,
       temperature,
       top_p,
@@ -174,17 +206,6 @@ if ('function' === typeof importScripts) {
     const info = session.info()
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
-
-    if (_init_state === undefined) {
-      _init_state = new Float32Array(session.state_len())
-      await session.back(_init_state)
-    }
-
-    console.log(`📌 State key: ${state_key}`)
-    const state = _states.has(state_key)
-      ? _states.get(state_key)!
-      : new Float32Array(_init_state!)
-    session.load(state)
 
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
     switch (session.session_type()) {
@@ -204,7 +225,7 @@ if ('function' === typeof importScripts) {
     }
 
     console.log(prompt)
-    const tokens = tokenizer.encode(encoder.encode(prompt))
+    let tokens = tokenizer.encode(encoder.encode(prompt))
 
     await window.navigator.locks.request('model', async (lock) => {
       const p = pipeline(session, tokens, sampler, stop_tokens, max_len)
@@ -215,8 +236,8 @@ if ('function' === typeof importScripts) {
       }
     })
 
-    await session.back(state)
-    _states.set(state_key, state)
+    const state = new Float32Array(session.state_len())
+    session.back(state)
 
     const visual = JSON.parse(new StateVisual(info, state).json())
     window.postMessage({
@@ -244,12 +265,7 @@ if ('function' === typeof importScripts) {
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
-    if (_init_state === undefined) {
-      _init_state = new Float32Array(session.state_len())
-      await session.back(_init_state)
-    }
-
-    const state = new Float32Array(_init_state)
+    const state = new Float32Array(session.state_len())
     session.load(state)
 
     console.log(prompt)
@@ -278,21 +294,6 @@ if ('function' === typeof importScripts) {
     window.postMessage({ type: 'replay_end' })
   }
 
-  function clone_state(data: string) {
-    const { source, destination } = JSON.parse(data)
-
-    if (!_states.has(source)) {
-      console.error(`😡 Cannot find source key ${source}`)
-      return
-    }
-    if (source === destination) {
-      console.warn(`🤔 Key the same: ${source}`)
-    }
-    const state = new Float32Array(_states.get(source)!)
-    _states.set(destination, state)
-    console.log(`✅ State ${source} cloned to ${destination}`)
-  }
-
   async function info(window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
@@ -304,6 +305,17 @@ if ('function' === typeof importScripts) {
       type: 'info',
       info: session.info(),
     })
+  }
+
+  async function abort() {
+    if ((await _session) === undefined) {
+      window.postMessage(null)
+      console.warn('⚠️ Model not loaded.')
+      return
+    }
+
+    const session = await _session!
+    session.clear_cache()
   }
 
   async function load(data: Uint8Array[], window: Window) {
@@ -353,12 +365,9 @@ if ('function' === typeof importScripts) {
           case 'replay':
             replay(e.data, this)
             break
-          case 'clone_state':
-            clone_state(e.data)
-            break
           case 'abort':
-            _abort = true
             console.log('🔴 Abort received')
+            abort()
             break
           case 'info':
             console.log('✅ Info received')

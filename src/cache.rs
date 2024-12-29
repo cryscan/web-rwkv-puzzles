@@ -86,8 +86,15 @@ pub struct CachedItem {
     pub output: TensorCpu<f32>,
 }
 
+#[derive(Debug, Clone)]
+pub struct CacheCheckout<'a> {
+    pub prefix: &'a [u16],
+    pub suffix: &'a [u16],
+    pub item: Option<CachedItem>,
+}
+
 impl Cache {
-    pub fn checkout<'a, 'b>(&'a self, tokens: &'b [u16]) -> (&'b [u16], Option<CachedItem>) {
+    pub fn checkout<'a, 'b>(&'a self, tokens: &'b [u16]) -> CacheCheckout<'b> {
         let cache = &self.0;
 
         let prefix = cache.longest_common_prefix(tokens.as_token_slice());
@@ -98,13 +105,25 @@ impl Cache {
         let prefix = &tokens[0..len];
 
         match cache.get(prefix.as_token_slice()).cloned() {
-            Some(item) => (&tokens[len..], Some(item)),
-            None => (tokens, None),
+            Some(item) => CacheCheckout {
+                prefix: &tokens[..len],
+                suffix: &tokens[len..],
+                item: Some(item),
+            },
+            None => CacheCheckout {
+                prefix: &[],
+                suffix: &tokens,
+                item: None,
+            },
         }
     }
 
     pub fn insert(&mut self, tokens: &[u16], state: TensorCpu<f32>, output: TensorCpu<f32>) {
         let tokens = Tokens(tokens.to_vec());
         self.0.insert(tokens, CachedItem { state, output });
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
     }
 }
