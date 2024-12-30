@@ -1,4 +1,7 @@
-export async function generateMusic(worker: Worker, prompt: string): Promise<void> {
+export async function generateMusic(
+  worker: Worker,
+  prompt: string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const options = {
       task: 'music',
@@ -11,18 +14,18 @@ export async function generateMusic(worker: Worker, prompt: string): Promise<voi
       presence_penalty: 0, // presence penalty should not be applied on ABC models
       count_penalty: 0,
       penalty_decay: 0,
-      vocab: '/assets/abctokenizer_vocab.json'
+      vocab: '../assets/abctokenizer_vocab.json',
     }
 
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === 'generation_complete') {
-        worker.removeEventListener('message', handleMessage);
-        resolve();
+        worker.removeEventListener('message', handleMessage)
+        resolve()
       }
-    };
+    }
 
-    worker.addEventListener('message', handleMessage);
-    window.music?.({ type: 'generation_start' });
-    worker.postMessage(JSON.stringify(options));
-  });
+    worker.addEventListener('message', handleMessage)
+    window.music?.({ type: 'generation_start' })
+    worker.postMessage(JSON.stringify(options))
+  })
 }
