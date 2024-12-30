@@ -8,7 +8,7 @@
 export const loadData = async (
   name: string,
   url: string,
-  key: string,
+  key?: string,
   onProgress?: (progress: number) => void,
   onContentLength?: (contentLength: number) => void,
   onLoadedLength?: (loadedLength: number) => void,
@@ -32,10 +32,13 @@ export const loadData = async (
   }
 
   console.log('🔄 Performing network request to load model:\n', url)
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { 'x-api-key': key },
-  })
+  const response =
+    key === undefined
+      ? await fetch(url)
+      : await fetch(url, {
+          method: 'GET',
+          headers: { 'x-api-key': key },
+        })
   const reader = response.body!.getReader()
   const contentLength = +response.headers.get('Content-Length')!
 
