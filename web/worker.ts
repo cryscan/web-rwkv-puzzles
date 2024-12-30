@@ -233,10 +233,6 @@ if ('function' === typeof importScripts) {
 
     console.log(prompt)
     let tokens = tokenizer.encode(encoder.encode(prompt))
-    if (session.session_type() == SessionType.Music) {
-      // append bos_token to the beginning of the tokens for music generation
-      tokens = new Uint16Array([2, ...tokens])
-    }
 
     await window.navigator.locks.request('model', async (lock) => {
       const p = pipeline(session, tokens, sampler, stop_tokens, max_len)
