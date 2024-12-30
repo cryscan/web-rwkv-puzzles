@@ -99,9 +99,14 @@ if ('function' === typeof importScripts) {
 
     await wasm_bindgen('web_rwkv_puzzles_bg.wasm')
 
+    console.log('Attempting to load tokenizer from:', url)
     const req = await fetch(url)
+    if (!req.ok) {
+      console.error(`Failed to load tokenizer: ${req.status} ${req.statusText}`)
+      throw new Error(`Failed to load tokenizer from ${url}`)
+    }
     const vocab = await req.text()
-    console.log(`📌 Tokenizer: ${vocab.length}`)
+    console.log(`📌 Tokenizer length:`, vocab.length)
 
     const tokenizer = new wasm_bindgen.Tokenizer(vocab)
     _tokenizers.set(url, tokenizer)
@@ -153,6 +158,7 @@ if ('function' === typeof importScripts) {
           probs = output
           break
         case SessionType.Chat:
+        case SessionType.Music:
           sampler.transform(output)
           await session.softmax(output, probs)
           break
@@ -210,6 +216,7 @@ if ('function' === typeof importScripts) {
     let sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler
     switch (session.session_type()) {
       case SessionType.Chat:
+      case SessionType.Music:
         sampler = new NucleusSampler(
           info,
           temperature,
@@ -226,6 +233,10 @@ if ('function' === typeof importScripts) {
 
     console.log(prompt)
     let tokens = tokenizer.encode(encoder.encode(prompt))
+    if (session.session_type() == SessionType.Music) {
+      // append bos_token to the beginning of the tokens for music generation
+      tokens = new Uint16Array([2, ...tokens])
+    }
 
     await window.navigator.locks.request('model', async (lock) => {
       const p = pipeline(session, tokens, sampler, stop_tokens, max_len)
@@ -245,6 +256,8 @@ if ('function' === typeof importScripts) {
       state: new Float32Array(state),
       visual,
     })
+    
+    window.postMessage({ type: 'generation_complete' })
   }
 
   async function replay(message: string, window: Window) {
@@ -350,8 +363,10 @@ if ('function' === typeof importScripts) {
         switch (task) {
           case 'puzzle':
           case 'chat':
+          case 'music':
             run(e.data, this)
             break
+          
           case 'set_session_type':
             switch (options.type) {
               case 'puzzle':
@@ -359,6 +374,9 @@ if ('function' === typeof importScripts) {
                 break
               case 'chat':
                 config.session_type = SessionType.Chat
+                break
+              case 'music':
+                config.session_type = SessionType.Music
                 break
             }
             break
