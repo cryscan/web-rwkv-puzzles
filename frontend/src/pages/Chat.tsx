@@ -780,8 +780,7 @@ const Info = () => {
           textAlign: 'center',
         }}
       >
-        An ultra-fast and efficient AI chatbot designed to run directly in your
-        browser.
+        An ultra-fast and efficient AI runs directly in your browser.
       </Text>
       <Text style={{ maxWidth: 410, textAlign: 'left' }}>
         Get ready to experience{' '}
@@ -805,7 +804,7 @@ const Info = () => {
         Alternatively, download converted safetensors model from{' '}
         <a
           style={{ fontWeight: 700 }}
-          href='https://huggingface.co/cgisky/ai00_rwkv_x060/tree/main'
+          href='https://huggingface.co/cgisky/RWKV-x070-Ai00/resolve/main/world_v2.8/0.1B/0.1B-20241210-ctx4096.st'
         >
           HuggingFace
         </a>{' '}
