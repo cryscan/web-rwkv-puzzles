@@ -74,6 +74,12 @@ const Replay = () => {
   }
 
   const initializeApp = () => {
+    if (!navigator.gpu) {
+      setTimeout(() => {
+        alert('WebGPU is not supported by this browser.')
+      }, 1000)
+    }
+
     worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.chat = onWorkerMessageReceived
     console.log('✅ Replay worker callback set')

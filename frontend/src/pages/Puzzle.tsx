@@ -70,8 +70,7 @@ function Puzzle() {
     window.puzzle = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
 
-    const gpu = navigator.gpu
-    if (!gpu) {
+    if (!navigator.gpu) {
       setTimeout(() => {
         alert('WebGPU is not supported by this browser.')
       }, 1000)
