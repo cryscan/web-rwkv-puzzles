@@ -9,6 +9,7 @@ if ('function' === typeof importScripts) {
     SimpleSampler,
     Tensor,
     TensorReader,
+    check_support,
   } = wasm_bindgen
 
   interface TensorInfo {
@@ -188,7 +189,7 @@ if ('function' === typeof importScripts) {
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      console.warn('⚠️ Model not loaded.')
+      console.warn('⚠️ Model not loaded')
       return
     }
 
@@ -252,14 +253,14 @@ if ('function' === typeof importScripts) {
       state: new Float32Array(state),
       visual,
     })
-    
+
     window.postMessage({ type: 'generation_complete' })
   }
 
   async function replay(message: string, window: Window) {
     if ((await _session) === undefined) {
       window.postMessage(null)
-      console.warn('⚠️ Model not loaded.')
+      console.warn('⚠️ Model not loaded')
       return
     }
 
@@ -317,9 +318,18 @@ if ('function' === typeof importScripts) {
   }
 
   async function abort() {
+    if (!(await check_support())) {
+      window.postMessage({
+        type: 'error',
+        error: 'WebGPU is not supported by this browser.',
+      })
+    } else {
+      console.log('✅ WebGPU supported')
+    }
+
     if ((await _session) === undefined) {
       window.postMessage(null)
-      console.warn('⚠️ Model not loaded.')
+      console.warn('⚠️ Model not loaded')
       return
     }
 
@@ -362,7 +372,7 @@ if ('function' === typeof importScripts) {
           case 'music':
             run(e.data, this)
             break
-          
+
           case 'set_session_type':
             switch (options.type) {
               case 'puzzle':

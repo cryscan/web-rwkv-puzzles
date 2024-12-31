@@ -29,6 +29,14 @@ pub enum SessionType {
     Music,
 }
 
+#[wasm_bindgen]
+pub async fn check_support() -> bool {
+    Instance::new(Default::default())
+        .adapter(PowerPreference::HighPerformance)
+        .await
+        .is_ok()
+}
+
 /// We need to slightly modify the model structure using hooks.
 fn make_puzzle_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
     let mut hooks = v6::HookMap::new();

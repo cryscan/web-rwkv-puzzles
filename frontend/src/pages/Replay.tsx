@@ -39,23 +39,21 @@ const Replay = () => {
   const onWorkerMessageReceived = (event: any) => {
     if (!event) return
     switch (event.type) {
+      case 'error':
+        alert(`Error: ${event.error}`)
+        break
       case 'replay':
         const { index, total, word, visual } = event
         setTokenIndex(index)
         setTokenTotal(total)
         setAnimationReady(false)
-
         if (!tourOpened.current) setTourOpen(true)
-
-        const frame = {
+        animation.current.push({
           history: llmContent.current,
           word,
           visual,
-        }
-        animation.current.push(frame)
-        console.log(frame)
+        })
         llmContent.current += word
-
         break
       case 'replay_end':
         setAnimationReady(true)
@@ -74,12 +72,6 @@ const Replay = () => {
   }
 
   const initializeApp = () => {
-    if (!navigator.gpu) {
-      setTimeout(() => {
-        alert('WebGPU is not supported by this browser.')
-      }, 1000)
-    }
-
     worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.chat = onWorkerMessageReceived
     console.log('✅ Replay worker callback set')

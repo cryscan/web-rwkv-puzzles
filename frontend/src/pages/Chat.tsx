@@ -202,6 +202,7 @@ const Chat = () => {
   const llmContent = React.useRef('')
   const chatHistory = React.useRef<string[]>([])
 
+  const [heartBeatSet, setHeartBeatSet] = useRecoilState(P.heartBeatSet)
   const worker = useRecoilValue(P.worker)
   const [, setLoading] = useRecoilState(P.modelLoading)
   const [, setLoaded] = useRecoilState(P.modelLoaded)
@@ -233,7 +234,7 @@ const Chat = () => {
       case 'error':
         setLoading(false)
         setLoaded(false)
-        alert(`Model loading error: ${event.error}`)
+        alert(`Error: ${event.error}`)
         break
       case 'state':
         console.log('✅ State updated')
@@ -256,15 +257,17 @@ const Chat = () => {
   }
 
   const initializeApp = () => {
-    if (!navigator.gpu) {
-      setTimeout(() => {
-        alert('WebGPU is not supported by this browser.')
-      }, 1000)
-    }
-
     worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.chat = onWorkerMessageReceived
     console.log('✅ Chat worker callback set')
+
+    if (!heartBeatSet) {
+      const heartBeat = () => {
+        worker.postMessage(JSON.stringify({ task: 'info' }))
+      }
+      setInterval(heartBeat, 1000)
+      setHeartBeatSet(true)
+    }
   }
 
   useEffect(() => {
@@ -698,7 +701,6 @@ const Info = () => {
   const modelUrl = useRecoilValue(P.modelUrl)
   const remoteUrl = useRecoilValue(P.remoteUrl)
   const remoteKey = useRecoilValue(P.remoteKey)
-  const [heartBeatSet, setHeartBeatSet] = useRecoilState(P.heartBeatSet)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.modelLoaded)
@@ -746,20 +748,6 @@ const Info = () => {
       await setupWorker(worker, chunks, 'chat')
     }
   }
-
-  const initializeApp = () => {
-    if (!heartBeatSet) {
-      const heartBeat = () => {
-        worker.postMessage(JSON.stringify({ task: 'info' }))
-      }
-      setInterval(heartBeat, 1000)
-      setHeartBeatSet(true)
-    }
-  }
-
-  useEffect(() => {
-    initializeApp()
-  })
 
   return (
     <div

@@ -22,42 +22,52 @@ function Puzzle() {
   const initializeRef = useRef(false)
 
   const onWorkerMessageReceived = (event: any) => {
+    const onTokenReceived = () => {
+      const { word, token } = event
+
+      // <board>
+      const isBoardStart = token == 54
+      if (isBoardStart) {
+        P.recording = true
+        return
+      }
+
+      // </board>
+      const isBoardEnd = token == 55
+      if (isBoardEnd) {
+        P.recording = false
+        const boardContent = P.boardContentRef
+        setBoard(boardContent)
+        P.boardContentRef = []
+        setMoves((prevMoves) => prevMoves + 1)
+        return
+      }
+
+      const stop = token == 59
+      if (stop) {
+        setDisplayState('none')
+        return
+      }
+
+      const tokenIsNotEnter = token != 82
+      if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
+
+      if (word == '\n') {
+        setLogs((prev) => [...prev, P.logTemp])
+        P.logTemp = ''
+      } else {
+        P.logTemp += word
+      }
+    }
+
     if (!event) return
-
-    const { word, token } = event
-
-    // <board>
-    const isBoardStart = token == 54
-    if (isBoardStart) {
-      P.recording = true
-      return
-    }
-
-    // </board>
-    const isBoardEnd = token == 55
-    if (isBoardEnd) {
-      P.recording = false
-      const boardContent = P.boardContentRef
-      setBoard(boardContent)
-      P.boardContentRef = []
-      setMoves((prevMoves) => prevMoves + 1)
-      return
-    }
-
-    const stop = token == 59
-    if (stop) {
-      setDisplayState('none')
-      return
-    }
-
-    const tokenIsNotEnter = token != 82
-    if (P.recording && tokenIsNotEnter) P.boardContentRef.push(word)
-
-    if (word == '\n') {
-      setLogs((prev) => [...prev, P.logTemp])
-      P.logTemp = ''
-    } else {
-      P.logTemp += word
+    switch (event.type) {
+      case 'error':
+        alert(`Error: ${event.error}`)
+        break
+      case 'token':
+        onTokenReceived()
+        break
     }
   }
 
@@ -69,12 +79,6 @@ function Puzzle() {
     worker.postMessage(JSON.stringify({ task: 'abort' }))
     window.puzzle = onWorkerMessageReceived
     setBoard(generateSolvablePuzzle())
-
-    if (!navigator.gpu) {
-      setTimeout(() => {
-        alert('WebGPU is not supported by this browser.')
-      }, 1000)
-    }
   }
 
   useEffect(() => {
