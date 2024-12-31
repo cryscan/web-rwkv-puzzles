@@ -391,6 +391,7 @@ const Chat = () => {
               <Row justify='end'>
                 <Tooltip title='Edit'>
                   <Button
+                    disabled={agent.isRequesting()}
                     color='default'
                     variant='text'
                     size='small'
@@ -400,6 +401,7 @@ const Chat = () => {
                 </Tooltip>
                 <Tooltip title='Copy'>
                   <Button
+                    disabled={agent.isRequesting()}
                     color='default'
                     variant='text'
                     size='small'
@@ -417,6 +419,7 @@ const Chat = () => {
             <>
               <Tooltip title='Regenerate'>
                 <Button
+                  disabled={agent.isRequesting()}
                   color='default'
                   variant='text'
                   size='small'
@@ -426,6 +429,7 @@ const Chat = () => {
               </Tooltip>
               <Tooltip title='Copy'>
                 <Button
+                  disabled={agent.isRequesting()}
                   color='default'
                   variant='text'
                   size='small'
@@ -435,6 +439,7 @@ const Chat = () => {
               </Tooltip>
               <Tooltip title='Edit'>
                 <Button
+                  disabled={agent.isRequesting()}
                   color='default'
                   variant='text'
                   size='small'
@@ -457,8 +462,8 @@ const Chat = () => {
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
   const [sampleOptionsCollapsed, setSampleOptionsCollapsed] = useState(false)
 
-  const renderStateStats = () =>
-    stateVisual!.stats.flatMap((x) => {
+  const renderStateStats = () => {
+    return stateVisual!.stats.flatMap((x) => {
       return [
         {
           layer: x.layer,
@@ -475,8 +480,10 @@ const Chat = () => {
         },
       ]
     })
-  const renderStateImages = () =>
-    stateVisual!.images.map((line, layer) => (
+  }
+
+  const renderStateImages = () => {
+    return stateVisual!.images.map((line, layer) => (
       <Flex key={layer}>
         <Text
           strong
@@ -495,6 +502,7 @@ const Chat = () => {
         </>
       </Flex>
     ))
+  }
 
   return (
     <Layout>
