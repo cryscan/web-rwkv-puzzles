@@ -36,7 +36,7 @@ const menuItems: MenuItem[] = [
   getItem('Chat', 'chat', <MessageOutlined />),
   getItem('15 Puzzle', '15puzzle', <BlockOutlined />),
   getItem('Music', 'music', <CustomerServiceOutlined />),
-  getItem('Replay', 'replay', <PlayCircleOutlined />),
+  getItem('State Replay', 'replay', <PlayCircleOutlined />),
 ]
 
 const Root: React.FC = () => {
