@@ -533,6 +533,7 @@ const Chat = () => {
           />
         )}
         <Sender
+          allowSpeech
           disabled={!loaded || agent.isRequesting() || editingIndex !== null}
           loading={agent.isRequesting()}
           value={content}
