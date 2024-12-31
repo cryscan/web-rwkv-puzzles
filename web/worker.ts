@@ -187,7 +187,6 @@ if ('function' === typeof importScripts) {
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
-      window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
     }
@@ -252,13 +251,12 @@ if ('function' === typeof importScripts) {
       state: new Float32Array(state),
       visual,
     })
-    
+
     window.postMessage({ type: 'generation_complete' })
   }
 
   async function replay(message: string, window: Window) {
     if ((await _session) === undefined) {
-      window.postMessage(null)
       console.warn('⚠️ Model not loaded.')
       return
     }
@@ -304,10 +302,7 @@ if ('function' === typeof importScripts) {
   }
 
   async function info(window: Window) {
-    if ((await _session) === undefined) {
-      window.postMessage(null)
-      return
-    }
+    if ((await _session) === undefined) return
 
     const session = await _session!
     window.postMessage({
@@ -316,12 +311,8 @@ if ('function' === typeof importScripts) {
     })
   }
 
-  async function abort() {
-    if ((await _session) === undefined) {
-      window.postMessage(null)
-      console.warn('⚠️ Model not loaded.')
-      return
-    }
+  async function abort(window: Window) {
+    if ((await _session) === undefined) return
 
     const session = await _session!
     session.clear_cache()
@@ -362,7 +353,7 @@ if ('function' === typeof importScripts) {
           case 'music':
             run(e.data, this)
             break
-          
+
           case 'set_session_type':
             switch (options.type) {
               case 'puzzle':
@@ -381,7 +372,7 @@ if ('function' === typeof importScripts) {
             break
           case 'abort':
             console.log('🔴 Abort received')
-            abort()
+            abort(this.window)
             break
           case 'info':
             console.log('✅ Info received')
