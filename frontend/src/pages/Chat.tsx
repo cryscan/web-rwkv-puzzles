@@ -15,6 +15,9 @@ import {
   UpOutlined,
   DownOutlined,
   InboxOutlined,
+  SyncOutlined,
+  CopyOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -25,15 +28,17 @@ import {
   Image,
   Layout,
   Popover,
-  Progress,
+  App,
+  Tooltip,
   Row,
+  Progress,
   Slider,
-  Space,
   Switch,
   Tabs,
   type GetProp,
+  Divider,
 } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { loadData, loadFile } from '../func/load'
@@ -44,22 +49,13 @@ import Sider from 'antd/es/layout/Sider'
 import { Typography } from 'antd'
 import { SamplerOptions, StateVisual } from '../func/type'
 import Dragger from 'antd/es/upload/Dragger'
+import { BubbleDataType } from '@ant-design/x/es/bubble/BubbleList'
+import { MessageInfo } from '@ant-design/x/es/useXChat'
+import TextArea from 'antd/es/input/TextArea'
 
 const { Text, Title } = Typography
 
-const intro = `User: Hi!
-
-Assistant: Hello! I'm your AI assistant. I'm here to help you with various tasks, such as answering questions, brainstorming ideas, drafting emails, writing code, providing advice, and much more.
-
-User: Why is the sky blue?
-
-Assistant: The sky appears blue due to a phenomenon called Rayleigh scattering, which involves the scattering of sunlight by the molecules and small particles in Earth's atmosphere. Sunlight, which contains a spectrum of colors from red to violet, interacts with the nitrogen and oxygen molecules in the Earth's atmosphere. Among the colors in the visible spectrum, blue and violet have shorter wavelengths. These shorter wavelengths are more likely to be scattered in all directions by the air molecules. This scattering effect is known as Rayleigh scattering. Although violet light is also scattered, our eyes are more sensitive to blue light. Additionally, the scattering of blue light is more efficient, making the sky appear predominantly blue to our eyes.
-
-User: What makes its color variant?
-
-Assistant: The color of the sky can vary depending on the time of day, weather conditions, and atmospheric pollutants. For example, during sunrise and sunset, the sky can appear red or orange due to the longer path the sunlight travels through the atmosphere, scattering more of the blue light away. Moreover, air pollution and cloud cover can also affect the color of the sky, making it appear grey or white.`
-
-const stops = [24281, 0, 82] // User, Q
+const stopTokens = [24281, 0, 82] // User, Q
 
 const items: PromptsProps['items'] = [
   {
@@ -77,7 +73,7 @@ const items: PromptsProps['items'] = [
 const roles: GetProp<typeof Bubble.List, 'roles'> = {
   ai: {
     placement: 'start',
-    avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
+    avatar: { icon: <img src='./assets/logo.png' alt='RWKV WebGPU Logo' /> },
   },
   local: {
     placement: 'end',
@@ -86,16 +82,17 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
 }
 
 const Chat = () => {
-  const [content, setContent] = React.useState('')
-  const llmContent = React.useRef('')
-  const chatHistory = React.useRef<string[]>([])
+  const [content, setContent] = useState('')
+
+  const llmContentRef = useRef('')
+  const chatHistoryRef = useRef<string[]>([])
+  const stateKeyRef = useRef(new Date().toUTCString())
 
   const worker = useRecoilValue(P.worker)
   const [, setLoading] = useRecoilState(P.modelLoading)
   const [, setLoaded] = useRecoilState(P.modelLoaded)
   const [heartBeatSet, setHeartBeatSet] = useRecoilState(P.heartBeatSet)
 
-  const stateKey = useRef(new Date().toUTCString())
   const [, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
@@ -106,7 +103,9 @@ const Chat = () => {
     count_penalty: 0.5,
     half_life: 200,
   })
+
   const samplerOptionsRef = useRef(samplerOptions)
+
   const updateSamplerOptions = (updated: SamplerOptions) => {
     setSamplerOptions(updated)
     samplerOptionsRef.current = updated
@@ -132,13 +131,12 @@ const Chat = () => {
         break
       case 'token':
         const { word, token } = event
-        if (stops.includes(token)) {
-          console.log(llmContent.current)
-          chatHistory.current.push(llmContent.current)
-          window.onSuccessBinding(llmContent.current)
+        if (stopTokens.includes(token)) {
+          chatHistoryRef.current.push(llmContentRef.current)
+          window.onSuccessBinding(llmContentRef.current)
         } else {
-          llmContent.current += word
-          window.onUpdateBinding(llmContent.current)
+          llmContentRef.current += word
+          window.onUpdateBinding(llmContentRef.current)
         }
         break
     }
@@ -168,26 +166,288 @@ const Chat = () => {
     initializeApp()
   }, [])
 
+  const { message: AppMessage } = App.useApp()
+  const [editingIndex, setEditingIndex] = useRecoilState(P.editingIndex)
+  const [editingText, setEditingText] = useRecoilState(P.editingText)
+
   // Agent for request
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onUpdate }) => {
       if (!message) return
-      chatHistory.current.push(message)
+      chatHistoryRef.current.push(message)
+
+      console.log({
+        h: [...chatHistoryRef.current],
+        m: 'useXAgent.request',
+      })
+
       invoke(
         worker,
-        chatHistory.current,
-        stateKey.current,
+        chatHistoryRef.current,
+        stateKeyRef.current,
         samplerOptionsRef.current,
       )
       window.onUpdateBinding = onUpdate
       window.onSuccessBinding = onSuccess
+
+      setTimeout(() => {
+        console.log({
+          h: [...chatHistoryRef.current],
+          m: 'useXAgent.request',
+        })
+      }, 5000)
     },
   })
 
   // Chat messages
-  const { onRequest, messages } = useXChat({
+  const { onRequest, messages, setMessages } = useXChat({
     agent,
   })
+
+  const onCopyButtonClick = (message: MessageInfo<string>) => {
+    AppMessage.success('Copied to clipboard')
+    navigator.clipboard.writeText(message.message)
+  }
+
+  const onEditButtonClick = (message: MessageInfo<string>) => {
+    setEditingIndex(message.id)
+    setEditingText(message.message)
+  }
+
+  const onSendButtonInBubbleClicked = (
+    message: MessageInfo<string>,
+    index: number,
+  ) => {
+    if (
+      editingText === undefined ||
+      editingText === '' ||
+      editingText === null
+    ) {
+      AppMessage.warning('Please enter the message first')
+      return
+    }
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onSendButtonInBubbleClicked',
+    })
+
+    setMessages((prevMessages) => {
+      const newMessages = [...prevMessages].slice(0, index)
+      return newMessages
+    })
+    chatHistoryRef.current = [...[...chatHistoryRef.current].slice(0, index)]
+
+    llmContentRef.current = ''
+
+    onRequest(editingText)
+
+    setEditingIndex(null)
+    setEditingText('')
+
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onSendButtonInBubbleClicked',
+    })
+
+    setTimeout(() => {
+      console.log({
+        h: [...chatHistoryRef.current],
+        m: 'onSendButtonInBubbleClicked',
+      })
+    }, 5000)
+  }
+
+  const onRegenerateButtonClick = (
+    message: MessageInfo<string>,
+    index: number,
+  ) => {
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onRegenerateButtonClick',
+    })
+
+    setMessages((prevMessages) => {
+      const newMessages = [...prevMessages].slice(0, index - 1)
+      return newMessages
+    })
+    const userMessage = chatHistoryRef.current[index - 1]
+    chatHistoryRef.current = [
+      ...[...chatHistoryRef.current].slice(0, index - 1),
+    ]
+
+    llmContentRef.current = ''
+
+    onRequest(userMessage)
+
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onRegenerateButtonClick',
+    })
+
+    setTimeout(() => {
+      console.log({
+        h: [...chatHistoryRef.current],
+        m: 'onRegenerateButtonClick',
+      })
+    }, 5000)
+  }
+
+  const onModifyButtonInBubbleClick = (
+    message: MessageInfo<string>,
+    index: number,
+  ) => {
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onModifyButtonInBubbleClick',
+    })
+    setMessages((prevMessages) => {
+      const newMessages = [...prevMessages].slice(0, index)
+      newMessages[index] = {
+        ...newMessages[index],
+        message: editingText!,
+      }
+      return newMessages
+    })
+
+    chatHistoryRef.current = [
+      ...[...chatHistoryRef.current].slice(0, index),
+      editingText!,
+    ]
+
+    setEditingText(undefined)
+    setEditingIndex(null)
+
+    console.log({
+      h: [...chatHistoryRef.current],
+      m: 'onModifyButtonInBubbleClick',
+    })
+  }
+
+  const renderMessages = () => {
+    return messages.map((message: MessageInfo<string>, index: number) => {
+      const { status, id } = message
+      const renderingBot = status !== 'local'
+      const editing = editingIndex === id
+      const bubbleData: BubbleDataType = {
+        key: id,
+        role: renderingBot ? 'ai' : 'local',
+        styles: editing
+          ? {
+              content: {
+                width: '100%',
+              },
+            }
+          : undefined,
+        content: editing ? (
+          <Flex vertical gap={4}>
+            <TextArea
+              autoSize
+              style={{ width: '100%' }}
+              value={editingText}
+              onChange={(e) => {
+                setEditingText(e.target.value)
+              }}
+              onPressEnter={(e) => {
+                console.log({ onPressEnter: e })
+                if (e.shiftKey) return
+                if (renderingBot) {
+                  onModifyButtonInBubbleClick(message, index)
+                } else {
+                  onSendButtonInBubbleClicked(message, index)
+                }
+              }}
+            />
+            <Flex justify='end' gap={4} align='center'>
+              <Text style={{ color: '#999' }}>
+                {'shift + ⏎ to change line'}
+              </Text>
+              <Divider type='vertical' />
+              <Button
+                type='primary'
+                onClick={() => {
+                  if (renderingBot) {
+                    onModifyButtonInBubbleClick(message, index)
+                  } else {
+                    onSendButtonInBubbleClicked(message, index)
+                  }
+                }}
+              >
+                {renderingBot ? 'Modify (⏎)' : 'Send (⏎)'}
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditingIndex(null)
+                  setEditingText(undefined)
+                }}
+              >
+                Cancel
+              </Button>
+            </Flex>
+          </Flex>
+        ) : (
+          <Flex vertical>
+            <Markdown>{message.message.trim()}</Markdown>
+            {!renderingBot && (
+              <Row justify='end'>
+                <Tooltip title='Edit'>
+                  <Button
+                    color='default'
+                    variant='text'
+                    size='small'
+                    icon={<EditOutlined />}
+                    onClick={() => onEditButtonClick(message)}
+                  />
+                </Tooltip>
+                <Tooltip title='Copy'>
+                  <Button
+                    color='default'
+                    variant='text'
+                    size='small'
+                    onClick={() => onCopyButtonClick(message)}
+                    icon={<CopyOutlined />}
+                  />
+                </Tooltip>
+              </Row>
+            )}
+          </Flex>
+        ),
+        header: renderingBot ? <Text>RWKV</Text> : undefined,
+        footer:
+          renderingBot && !editing ? (
+            <>
+              <Tooltip title='Regenerate'>
+                <Button
+                  color='default'
+                  variant='text'
+                  size='small'
+                  icon={<SyncOutlined />}
+                  onClick={() => onRegenerateButtonClick(message, index)}
+                />
+              </Tooltip>
+              <Tooltip title='Copy'>
+                <Button
+                  color='default'
+                  variant='text'
+                  size='small'
+                  onClick={() => onCopyButtonClick(message)}
+                  icon={<CopyOutlined />}
+                />
+              </Tooltip>
+              <Tooltip title='Edit'>
+                <Button
+                  color='default'
+                  variant='text'
+                  size='small'
+                  icon={<EditOutlined />}
+                  onClick={() => onEditButtonClick(message)}
+                />
+              </Tooltip>
+            </>
+          ) : undefined,
+      }
+      return bubbleData
+    })
+  }
 
   const hasMessages = messages.length > 0
   const hasStateVisual = stateVisual !== null
@@ -197,12 +457,6 @@ const Chat = () => {
   const [stateStatsOutliers, setStateStatsOutliers] = useState(true)
   const [sampleOptionsCollapsed, setSampleOptionsCollapsed] = useState(false)
 
-  const renderMessages = () =>
-    messages.map((message) => ({
-      key: message.id,
-      role: message.status === 'local' ? 'local' : 'ai',
-      content: <Markdown>{message.message}</Markdown>,
-    }))
   const renderStateStats = () =>
     stateVisual!.stats.flatMap((x) => {
       return [
@@ -223,7 +477,7 @@ const Chat = () => {
     })
   const renderStateImages = () =>
     stateVisual!.images.map((line, layer) => (
-      <Flex>
+      <Flex key={layer}>
         <Text
           strong
           style={{ minWidth: 100, textAlign: 'center', alignSelf: 'center' }}
@@ -232,7 +486,11 @@ const Chat = () => {
         </Text>
         <>
           {line.map((code) => (
-            <Image width={64} src={`data:image/png;base64,${code}`} />
+            <Image
+              key={code}
+              width={64}
+              src={`data:image/png;base64,${code}`}
+            />
           ))}
         </>
       </Flex>
@@ -269,13 +527,13 @@ const Chat = () => {
             onItemClick={(data) => {
               onRequest(data.data.description as string)
               setContent('')
-              llmContent.current = ''
+              llmContentRef.current = ''
             }}
             wrap
           />
         )}
         <Sender
-          disabled={!loaded}
+          disabled={!loaded || agent.isRequesting() || editingIndex !== null}
           loading={agent.isRequesting()}
           value={content}
           style={{
@@ -289,7 +547,7 @@ const Chat = () => {
           onSubmit={(nextContent) => {
             onRequest(nextContent)
             setContent('')
-            llmContent.current = ''
+            llmContentRef.current = ''
           }}
         />
         <Text style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>
@@ -486,6 +744,7 @@ const Chat = () => {
         <Flex vertical gap={18}>
           <Popover
             title='Explanation of Count Penalty'
+            overlayStyle={{ maxWidth: 300 }}
             content={
               <Text>
                 Count penalty (frequency penalty) discourages overuse of
@@ -554,7 +813,7 @@ const invoke = (
   worker: Worker,
   history: string[],
   state: string,
-  sampler: SamplerOptions,
+  samplerOptions: SamplerOptions,
 ) => {
   // let prompt: string
   // if (history === '') prompt = `${assistant}\n\nUser: ${message}\n\nAssistant:`
@@ -568,16 +827,16 @@ const invoke = (
       return `${role}: ${text.trim()}`
     })
     .join('\n\n')
-  prompt = `${intro}\n\n${prompt}\n\nAssistant:`
+  prompt = `${P.intro}\n\n${prompt}\n\nAssistant:`
 
   const { temperature, top_p, presence_penalty, count_penalty, half_life } =
-    sampler
+    samplerOptions
   const options = {
     task: 'chat',
     max_len: 2048,
     prompt,
     state_key: state,
-    stop_tokens: stops,
+    stop_tokens: stopTokens,
     temperature,
     top_p,
     presence_penalty,
