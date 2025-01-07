@@ -13,10 +13,9 @@ const Root: React.FC = () => {
       <div className='flex w-full h-full'>
         <AppSidebar />
         <div className='flex-1 relative'>
-          <div className='absolute top-0 left-0'>
+          <div className='absolute top-0 left-0 z-50'>
             <SidebarTrigger />
           </div>
-
           <div className='flex-1 h-full'>
             <Routes>
               <Route path='/' element={<Navigate to='/chat' />} />
