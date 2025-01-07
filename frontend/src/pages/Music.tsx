@@ -2,7 +2,7 @@ import Keyboard from '../components/music/keyboard/keyboard'
 import Player from '../components/music/player/player'
 import Controller from '../components/music/controller/controller'
 import Intro from '../components/music/controller/intro'
-import { ScrollArea } from "../components/ui/scroll-area"
+import { ScrollArea } from '../components/ui/scroll-area'
 
 type MusicSection = {
   Component: React.ComponentType
@@ -18,7 +18,6 @@ export default function Music(): JSX.Element {
   ]
 
   return (
-
     <ScrollArea className='w-full h-[calc(100vh-8px)] gap-2 p-2 '>
       <div className='w-full h-40 flex shrink-0 '>
         <Intro />

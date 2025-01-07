@@ -82,9 +82,9 @@ function Puzzle() {
   }, [])
 
   return (
-    <div className="h-screen overflow-y-auto bg-zinc-50 flex flex-col lg:flex-row">
+    <div className='h-screen overflow-y-auto bg-zinc-50 flex flex-col lg:flex-row'>
       <Info />
-      <div className="h-px lg:h-auto lg:w-px bg-zinc-200" />
+      <div className='h-px lg:h-auto lg:w-px bg-zinc-200' />
       <Blocks />
     </div>
   )
@@ -92,15 +92,19 @@ function Puzzle() {
 
 const Info = () => {
   return (
-    <div className="p-6 lg:w-1/3 ">
-      <h1 className="text-2xl font-bold text-slate-800 mb-4">Web-RWKV In-Browser</h1>
-      <div className="space-y-3 text-sm text-slate-600 mb-6">
+    <div className='p-6 lg:w-1/3 '>
+      <h1 className='text-2xl font-bold text-slate-800 mb-4'>
+        Web-RWKV In-Browser
+      </h1>
+      <div className='space-y-3 text-sm text-slate-600 mb-6'>
         <p>Welcome to the Web-RWKV puzzle solver in browser!</p>
         <p>
           Check{' '}
-          <a href="https://github.com/cryscan/web-rwkv-puzzles"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-            target="_blank">
+          <a
+            href='https://github.com/cryscan/web-rwkv-puzzles'
+            className='text-blue-600 hover:text-blue-800 font-medium'
+            target='_blank'
+          >
             the Github repo
           </a>{' '}
           for more details about this demo.
@@ -122,8 +126,8 @@ const Info = () => {
           <a href='https://github.com/HaloWang' target='_blank'>
             HaloWang
           </a>{' '}
-          for the awesome in-browser implementation and the website (I am totally
-          unfamiliar with web dev LoL).
+          for the awesome in-browser implementation and the website (I am
+          totally unfamiliar with web dev LoL).
         </p>
       </div>
       <Logs />
@@ -144,10 +148,10 @@ const Logs = () => {
   return (
     <div
       ref={logsRef}
-      className="bg-white border border-slate-200 rounded-lg p-4 h-[200px] lg:h-[400px] overflow-y-auto font-mono text-xs"
+      className='bg-white border border-slate-200 rounded-lg p-4 h-[200px] lg:h-[400px] overflow-y-auto font-mono text-xs'
     >
       {logs.map((log, index) => (
-        <div key={index} className="text-left text-slate-700">
+        <div key={index} className='text-left text-slate-700'>
           {log}
         </div>
       ))}
@@ -249,8 +253,8 @@ const Blocks = () => {
   }, [displayState, finished])
 
   return (
-    <div className="flex-1 p-6 flex flex-col items-center justify-center">
-      <h2 className="text-xl font-bold text-slate-800 mb-4">15 Puzzle</h2>
+    <div className='flex-1 p-6 flex flex-col items-center justify-center'>
+      <h2 className='text-xl font-bold text-slate-800 mb-4'>15 Puzzle</h2>
       <RunInfo />
       <Controls />
       <Grid />
@@ -262,7 +266,7 @@ const RunInfo = () => {
   const [moves] = useRecoilState(P.moves)
   const [time] = useRecoilState(P.time)
   return (
-    <div className="flex gap-4 text-sm text-slate-600 mb-4">
+    <div className='flex gap-4 text-sm text-slate-600 mb-4'>
       <div>Moves: {moves}</div>
       <div>Time: {time} s</div>
     </div>
@@ -339,24 +343,24 @@ const Controls = () => {
   }
 
   return (
-    <div className="flex gap-3 mb-6 w-full max-w-sm">
+    <div className='flex gap-3 mb-6 w-full max-w-sm'>
       <Button
-        className="flex-1 bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+        className='flex-1 bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
         onClick={onClickNewGame}
         disabled={displayState == 'running'}
       >
         New Game
       </Button>
       <Button
-        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none"
+        className='flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none'
         onClick={onClickStart}
         disabled={displayState == 'running'}
       >
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-            ? '🎉 Finished'
-            : '🚀 Start'}
+          ? '🎉 Finished'
+          : '🚀 Start'}
       </Button>
     </div>
   )
@@ -392,8 +396,8 @@ const Cell = (options: {
   return (
     <div
       className={`
-        ${label == 0 ? 'opacity-0' : 'opacity-100'}
-        ${label == expectedLabel ? 'bg-green-100' : 'bg-blue-100'}
+        ${label == 0 ? 'opacity-0' : 'opacity-200'}
+        ${label == expectedLabel ? 'bg-green-200' : 'bg-blue-200'}
         w-16 h-16 md:w-24 md:h-24
         rounded-xl flex items-center justify-center
         text-lg font-bold
