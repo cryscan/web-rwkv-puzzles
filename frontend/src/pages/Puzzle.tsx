@@ -92,7 +92,7 @@ function Puzzle() {
 
 const Info = () => {
   return (
-    <div className='p-6 lg:w-1/3 '>
+    <div className='p-6 lg:w-1/2 '>
       <h1 className='text-2xl font-bold text-slate-800 mb-4'>
         Web-RWKV In-Browser
       </h1>
@@ -148,7 +148,7 @@ const Logs = () => {
   return (
     <div
       ref={logsRef}
-      className='bg-white border border-slate-200 rounded-lg p-4 h-[200px] lg:h-[400px] overflow-y-auto font-mono text-xs'
+      className='bg-white border border-slate-200 rounded-lg p-4 h-[200px] lg:h-2/3 overflow-y-auto font-mono text-xs'
     >
       {logs.map((log, index) => (
         <div key={index} className='text-left text-slate-700'>
