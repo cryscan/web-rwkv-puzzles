@@ -6,6 +6,7 @@ import { RecoilRoot } from 'recoil'
 import Root from './Root'
 import { HashRouter } from 'react-router-dom'
 import { App } from 'antd'
+import { SidebarProvider } from './components/ui/SidebarProvider'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
@@ -13,7 +14,9 @@ root.render(
     <HashRouter>
       <RecoilRoot>
         <React.StrictMode>
-          <Root />
+          <SidebarProvider>
+            <Root />
+          </SidebarProvider>
         </React.StrictMode>
       </RecoilRoot>
     </HashRouter>
