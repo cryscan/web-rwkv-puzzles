@@ -38,15 +38,15 @@ const modelUrl = atom({
 const remoteUrl = atom({
   key: 'remoteUrl',
   default:
-    // 'https://api-image.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
-    'https://huggingface.co/cgisky/RWKV-x070-Ai00/resolve/main/world_v2.8/0.1B/0.1B-20241210-ctx4096.st',
+    'https://api-image.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+  // 'https://huggingface.co/cgisky/RWKV-x070-Ai00/resolve/main/world_v2.8/0.1B/0.1B-20241210-ctx4096.st',
 })
 
 const remoteKey = atom({
   key: 'remoteKey',
   default:
-    // '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
-    undefined,
+    '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
+  // undefined,
 })
 
 const heartBeatSet = atom({

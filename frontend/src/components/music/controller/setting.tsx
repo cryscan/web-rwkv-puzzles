@@ -1,10 +1,10 @@
-import { Button, Progress } from "antd";
-import { useRecoilState } from "recoil";
-import { useRecoilValue } from "recoil";
-import { M } from "../../../pages/state_music";
-import { loadData } from "../../../func/load";
-import { setupWorker } from "../../../setup_worker";
-import { CheckOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Progress } from 'antd'
+import { useRecoilState } from 'recoil'
+import { useRecoilValue } from 'recoil'
+import { M } from '../../../pages/state_music'
+import { loadData } from '../../../func/load'
+import { setupWorker } from '../../../setup_worker'
+import { CheckCircleOutlined } from '@ant-design/icons'
 export default function Setting() {
   const kDebugMode = process.env.NODE_ENV == 'development'
   const modelUrl = useRecoilValue(M.modelUrl)
@@ -38,7 +38,7 @@ export default function Setting() {
     if (worker) {
       await setupWorker(worker, chunks, 'music')
     } else {
-      throw new Error('Worker is not available');
+      throw new Error('Worker is not available')
     }
     setLoading(false)
     setLoaded(true)
@@ -46,17 +46,21 @@ export default function Setting() {
   return (
     <div className='w-full flex flex-col items-center justify-center '>
       {loaded ? (
-        <div className="flex flex-col items-center justify-center w-full">
-          <div className="flex gap-2 items-center justify-center">
-            <CheckCircleOutlined className="inline-flex items-center text-lg text-blue-500" />
-            <span className="inline-flex items-center text-lg text-blue-500">model loaded </span>
-            <span className="inline-flex items-center text-lg cursor-pointer text-white hover:opacity-80" onClick={onClickLoadModel}>Reload</span>
+        <div className='flex flex-col items-center justify-center w-full'>
+          <div className='flex gap-2 items-center justify-center'>
+            <CheckCircleOutlined className='inline-flex items-center text-lg text-blue-500' />
+            <span className='inline-flex items-center text-lg text-blue-500'>
+              Model Loaded
+            </span>
+            {/* <span className="inline-flex items-center text-lg cursor-pointer text-white hover:opacity-80" onClick={onClickLoadModel}>Reload</span> */}
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center w-full">
-          <Button type="primary" onClick={onClickLoadModel} loading={loading}>{loading ? 'Loading...' : 'Load Model'}</Button>
-          <div className="w-full flex flex-col items-center justify-center">
+        <div className='flex flex-col items-center justify-center w-full'>
+          <Button type='primary' onClick={onClickLoadModel} loading={loading}>
+            {loading ? 'Loading...' : 'Load Model'}
+          </Button>
+          <div className='w-full flex flex-col items-center justify-center'>
             {loading && (
               <Progress
                 style={{ maxWidth: 300 }}
@@ -65,8 +69,9 @@ export default function Setting() {
               />
             )}
             {loading && (
-              <div className="text-white text-sm">
-                {(loadedLength / (1000 * 1000)).toFixed(1)}MB / {(contentLength / (1000 * 1000)).toFixed(1)}MB
+              <div className='text-white text-sm'>
+                {(loadedLength / (1000 * 1000)).toFixed(1)}MB /{' '}
+                {(contentLength / (1000 * 1000)).toFixed(1)}MB
               </div>
             )}
           </div>
