@@ -28,18 +28,15 @@ export default function Player() {
   }, [generatedMusic]);
 
   return (
-    <div className='w-full h-full flex flex-col gap-4'>
-      <div className='w-full h-1/6 max-h-1/6 overflow-y-auto p-2 rounded-lg border shadow-lg bg-white'>
+    <div className='w-full h-full flex flex-col gap-2 md:gap-4'>
+      <div className='w-full min-h-40 md:min-h-40 max-h-40 overflow-y-auto p-2 rounded-lg border shadow-lg bg-white'>
         <pre className="w-full whitespace-pre-wrap">
           {generatedMusic || "Generated music will appear here..."}
         </pre>
         <div ref={endOfContentRef}></div>
       </div>
-  
-        <MusicSheet music={generatedMusic} />
-   
-
-      <div className='w-full h-2/6 max-h-2/6 overflow-y-auto p-2 rounded-lg border shadow-lg bg-white'>
+      <MusicSheet music={generatedMusic} />
+      <div className='w-full h-full overflow-y-auto p-2 rounded-lg border shadow-lg bg-white'>
         <Generator prompt={inputPrompt} setPrompt={setInputPrompt} />
       </div>
     </div>

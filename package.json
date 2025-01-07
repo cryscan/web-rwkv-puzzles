@@ -1,5 +1,5 @@
 {
     "scripts": {
-        "postinstall": "cd frontend && yarn install"
+        "postinstall": "cd frontend && pnpm install"
     }
 }

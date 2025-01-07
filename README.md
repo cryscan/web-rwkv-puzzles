@@ -7,13 +7,14 @@ Check the [live demo](https://cryscan.github.io/web-rwkv-puzzles/)!
 
 ## Dependencies
 
-### `node.js`, `yarn` and `typescript`
+### `node.js`, `pnpm` and `typescript`
 
 Install requirements:
 
 ```bash
-$ npm install --global yarn
+$ npm install --global pnpm
 $ npm install --global typescript
+$ pnpm install
 ```
 
 ### `rust` and `wasm-pack`
@@ -50,5 +51,5 @@ $ ./build.bash
 
 ```bash
 $ cd frontend
-$ yarn start
+$ pnpm start
 ```
