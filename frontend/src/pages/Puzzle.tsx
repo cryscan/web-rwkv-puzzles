@@ -4,13 +4,13 @@ import { Button } from 'antd'
 import { P } from './state_puzzle'
 import { loadData } from '../func/load'
 import { setupWorker } from '../setup_worker'
-import './Puzzle.css'
+// import './Puzzle.css'
 
-const width = 750
-const gridSize = width / 2
-const cellGap = 8
-const girdPadding = 16
-const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
+// const width = 750
+// const gridSize = width / 2
+// const cellGap = 8
+// const girdPadding = 16
+// const cellSize = (gridSize - girdPadding * 2 - cellGap * 3) / 4
 
 function Puzzle() {
   const [board, setBoard] = useRecoilState(P.board)
@@ -82,9 +82,9 @@ function Puzzle() {
   }, [])
 
   return (
-    <div className='app'>
+    <div className="h-screen overflow-y-auto bg-zinc-50 flex flex-col lg:flex-row">
       <Info />
-      <div className='separator'></div>
+      <div className="h-px lg:h-auto lg:w-px bg-zinc-200" />
       <Blocks />
     </div>
   )
@@ -92,35 +92,39 @@ function Puzzle() {
 
 const Info = () => {
   return (
-    <div className='info'>
-      <div className='info-title'>Web-RWKV In-Browser</div>
-      <div>Welcome to the Web-RWKV puzzle solver in browser!</div>
-      <div>
-        Check{' '}
-        <a href='https://github.com/cryscan/web-rwkv-puzzles' target='_blank'>
-          the Github repo
-        </a>{' '}
-        for more details about this demo.
-      </div>
-      <div>
-        Note that this demo runs on WebGPU so make sure that your browser
-        support it before running (See{' '}
-        <a href='https://webgpureport.org/' target='_blank'>
-          WebGPU Report
-        </a>
-        ).
-      </div>
-      <div>
-        Thanks to{' '}
-        <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
-          josephrocca
-        </a>{' '}
-        and{' '}
-        <a href='https://github.com/HaloWang' target='_blank'>
-          HaloWang
-        </a>{' '}
-        for the awesome in-browser implementation and the website (I am totally
-        unfamiliar with web dev LoL).
+    <div className="p-6 lg:w-1/3 ">
+      <h1 className="text-2xl font-bold text-slate-800 mb-4">Web-RWKV In-Browser</h1>
+      <div className="space-y-3 text-sm text-slate-600 mb-6">
+        <p>Welcome to the Web-RWKV puzzle solver in browser!</p>
+        <p>
+          Check{' '}
+          <a href="https://github.com/cryscan/web-rwkv-puzzles"
+            className="text-blue-600 hover:text-blue-800 font-medium"
+            target="_blank">
+            the Github repo
+          </a>{' '}
+          for more details about this demo.
+        </p>
+        <p>
+          Note that this demo runs on WebGPU so make sure that your browser
+          support it before running (See{' '}
+          <a href='https://webgpureport.org/' target='_blank'>
+            WebGPU Report
+          </a>
+          ).
+        </p>
+        <p>
+          Thanks to{' '}
+          <a href='https://github.com/josephrocca/rwkv-v4-web' target='_blank'>
+            josephrocca
+          </a>{' '}
+          and{' '}
+          <a href='https://github.com/HaloWang' target='_blank'>
+            HaloWang
+          </a>{' '}
+          for the awesome in-browser implementation and the website (I am totally
+          unfamiliar with web dev LoL).
+        </p>
       </div>
       <Logs />
     </div>
@@ -138,9 +142,12 @@ const Logs = () => {
   }, [logs])
 
   return (
-    <div className='logs' ref={logsRef}>
+    <div
+      ref={logsRef}
+      className="bg-white border border-slate-200 rounded-lg p-4 h-[200px] lg:h-[400px] overflow-y-auto font-mono text-xs"
+    >
       {logs.map((log, index) => (
-        <div key={index} className='log-item'>
+        <div key={index} className="text-left text-slate-700">
           {log}
         </div>
       ))}
@@ -242,8 +249,8 @@ const Blocks = () => {
   }, [displayState, finished])
 
   return (
-    <div className='puzzle'>
-      <div className='puzzle_title'>15 Puzzle</div>
+    <div className="flex-1 p-6 flex flex-col items-center justify-center">
+      <h2 className="text-xl font-bold text-slate-800 mb-4">15 Puzzle</h2>
       <RunInfo />
       <Controls />
       <Grid />
@@ -255,7 +262,7 @@ const RunInfo = () => {
   const [moves] = useRecoilState(P.moves)
   const [time] = useRecoilState(P.time)
   return (
-    <div className='run_info'>
+    <div className="flex gap-4 text-sm text-slate-600 mb-4">
       <div>Moves: {moves}</div>
       <div>Time: {time} s</div>
     </div>
@@ -266,7 +273,7 @@ const Grid = () => {
   const [board] = useRecoilState(P.board)
   if (board.length == 0) return null
   return (
-    <div className='grid'>
+    <div className='grid grid-cols-4 gap-2'>
       <Row rowIndex={0} data={board.slice(0, 4)} />
       <Row rowIndex={1} data={board.slice(4, 8)} />
       <Row rowIndex={2} data={board.slice(8, 12)} />
@@ -278,7 +285,7 @@ const Grid = () => {
 const Row = (options: { rowIndex: number; data: number[] }) => {
   const { rowIndex, data } = options
   return (
-    <div className='row'>
+    <div className='flex flex-col gap-2'>
       {Array.from({ length: 4 }).map(function (_, index) {
         return (
           <Cell
@@ -332,24 +339,24 @@ const Controls = () => {
   }
 
   return (
-    <div className='controls'>
+    <div className="flex gap-3 mb-6 w-full max-w-sm">
       <Button
-        className='button'
+        className="flex-1 bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
         onClick={onClickNewGame}
         disabled={displayState == 'running'}
       >
         New Game
       </Button>
       <Button
-        className='button'
+        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none"
         onClick={onClickStart}
         disabled={displayState == 'running'}
       >
         {displayState == 'running'
           ? '🤔 Running...'
           : finished
-          ? '🎉 Finished'
-          : '🚀 Start'}
+            ? '🎉 Finished'
+            : '🚀 Start'}
       </Button>
     </div>
   )
@@ -380,24 +387,20 @@ const Cell = (options: {
   columnIndex: number
 }) => {
   const { label, rowIndex, columnIndex } = options
-
   const expectedLabel = rowIndex * 4 + columnIndex + 1
-
-  var color = 'rgba(197, 211, 232, 1)'
-  if (label == expectedLabel) color = 'rgba(208, 232, 197, 1)'
-  if (label == 0) color = 'rgba(224, 195, 195, 0)'
 
   return (
     <div
-      key={label}
-      className='cell'
-      style={{
-        width: `${cellSize}px`,
-        height: `${cellSize}px`,
-        backgroundColor: color,
-      }}
+      className={`
+        ${label == 0 ? 'opacity-0' : 'opacity-100'}
+        ${label == expectedLabel ? 'bg-green-100' : 'bg-blue-100'}
+        w-16 h-16 md:w-24 md:h-24
+        rounded-xl flex items-center justify-center
+        text-lg font-bold
+        transition-colors duration-200 ease-in-out
+      `}
     >
-      {label == 0 ? '' : label}
+      {label}
     </div>
   )
 }
