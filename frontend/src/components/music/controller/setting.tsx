@@ -48,8 +48,8 @@ export default function Setting() {
       {loaded ? (
         <div className='flex flex-col items-center justify-center w-full'>
           <div className='flex gap-2 items-center justify-center'>
-            <CheckCircleOutlined className='inline-flex items-center text-lg text-blue-500' />
-            <span className='inline-flex items-center text-lg text-blue-500'>
+            <CheckCircleOutlined className='inline-flex items-center text-sm md:text-lg text-blue-600' />
+            <span className='inline-flex items-center text-sm md:text-lg text-blue-600 font-semibold'>
               Model Loaded
             </span>
             {/* <span className="inline-flex items-center text-lg cursor-pointer text-white hover:opacity-80" onClick={onClickLoadModel}>Reload</span> */}
@@ -57,7 +57,7 @@ export default function Setting() {
         </div>
       ) : (
         <div className='flex flex-col items-center justify-center w-full'>
-          <Button type='primary' onClick={onClickLoadModel} loading={loading}>
+          <Button type='primary' size='middle' onClick={onClickLoadModel} loading={loading}>
             {loading ? 'Loading...' : 'Load Model'}
           </Button>
           <div className='w-full flex flex-col items-center justify-center'>

@@ -57,7 +57,7 @@ export default function MusicSheet({ music }: { music: string }) {
   }, [music]);
 
   return (
-    <div className='w-full h-3/6 flex flex-col bg-white rounded-lg border shadow-lg p-2'>
+    <div className='w-full min-h-40 max-h-96 flex flex-col bg-white rounded-lg border shadow-lg p-2'>
       <div className='w-full h-full overflow-y-auto p-2'>
         <div ref={sheetRef}></div>
         <div ref={endOfSheetRef}></div>

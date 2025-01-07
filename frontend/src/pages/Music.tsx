@@ -2,7 +2,7 @@ import Keyboard from '../components/music/keyboard/keyboard'
 import Player from '../components/music/player/player'
 import Controller from '../components/music/controller/controller'
 import Intro from '../components/music/controller/intro'
-// import Intro from "../components/music/intro/intro";
+import { ScrollArea } from "../components/ui/scroll-area"
 
 type MusicSection = {
   Component: React.ComponentType
@@ -18,14 +18,15 @@ export default function Music(): JSX.Element {
   ]
 
   return (
-    <div className='w-full h-[calc(100vh-48px)] overflow-y-hidden flex flex-col gap-2 p-2 bg-zinc-100'>
-      <div className='w-full h-40 flex shrink-0'>
+
+    <ScrollArea className='w-full h-[calc(100vh-8px)] gap-2 p-2 '>
+      <div className='w-full h-40 flex shrink-0 '>
         <Intro />
       </div>
 
-      <div className='w-full flex-grow overflow-y-hidden'>
+      <div className='w-full h-full mt-2 md:mt-4'>
         <Player />
       </div>
-    </div>
+    </ScrollArea>
   )
 }
