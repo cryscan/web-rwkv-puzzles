@@ -37,6 +37,7 @@ import {
   Tabs,
   type GetProp,
   Divider,
+  Select,
 } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { P } from './state_chat'
@@ -96,13 +97,7 @@ const Chat = () => {
   const [, setStateValue] = useState<null | Float32Array>(null)
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
-  const [samplerOptions, setSamplerOptions] = useState({
-    temperature: 2.0,
-    top_p: 0.5,
-    presence_penalty: 0.5,
-    count_penalty: 0.5,
-    half_life: 200,
-  })
+  const [samplerOptions, setSamplerOptions] = useRecoilState(P.samplerOptions)
 
   const samplerOptionsRef = useRef(samplerOptions)
 
@@ -860,9 +855,10 @@ const invoke = (
 const Info = () => {
   const kDebugMode = process.env.NODE_ENV == 'development'
 
-  const modelUrl = useRecoilValue(P.modelUrl)
-  const remoteUrl = useRecoilValue(P.remoteUrl)
-  const remoteKey = useRecoilValue(P.remoteKey)
+  const modelLoadLocal = useRecoilValue(P.modelLoadLocal)
+  const modelLoadRemote = useRecoilValue(P.modelLoadRemote)
+  const [modelLoadId, setModelLoadId] = useRecoilState(P.modelLoadId)
+  const [, setSamplerOptions] = useRecoilState(P.samplerOptions)
   const [, setLoadedProgress] = useRecoilState(P.loadedProgress)
   const [loading, setLoading] = useRecoilState(P.modelLoading)
   const [loaded, setLoaded] = useRecoilState(P.modelLoaded)
@@ -871,13 +867,18 @@ const Info = () => {
   const [loadedLength, setLoadedLength] = useRecoilState(P.loadedSize)
   const worker = useRecoilValue(P.worker)
 
+  const modelLoad = () =>
+    kDebugMode ? modelLoadLocal[modelLoadId] : modelLoadRemote[modelLoadId]
+
   const onClickLoadModel = async () => {
     setLoading(true)
     setLoaded(false)
+    setSamplerOptions(modelLoad().sampler)
+
     const chunks = await loadData(
-      'chat',
-      kDebugMode ? modelUrl : remoteUrl,
-      remoteKey,
+      `chat-${modelLoadId}`,
+      modelLoad().url,
+      modelLoad().key,
       (progress) => {
         setLoadedProgress(progress)
       },
@@ -944,11 +945,11 @@ const Info = () => {
           style={{ fontWeight: 700 }}
           href='https://huggingface.co/BlinkDL/rwkv-7-world/tree/main'
         >
-          RWKV-x070-World-0.1B
+          RWKV-x070-World
         </a>
-        , a compact language model with 0.1 billion parameters, optimized for
-        seamless in-browser inference. This model operates entirely within your
-        browser via{' '}
+        , series of compact language models with 0.1 or 0.4 billion parameters,
+        optimized for seamless in-browser inference. The model series operates
+        entirely within your browser via{' '}
         <a
           style={{ fontWeight: 700 }}
           href='https://github.com/cryscan/web-rwkv'
@@ -969,13 +970,13 @@ const Info = () => {
       <Text style={{ maxWidth: 410, textAlign: 'left' }}>
         Note that this demo runs on WebGPU, so make sure that your browser
         supports it before running (See{' '}
-        <a href='https://webgpureport.org/' target='_blank'>
+        <a style={{ fontWeight: 700 }} href='https://webgpureport.org/'>
           WebGPU Report
         </a>
         ).
       </Text>
       <Text style={{ maxWidth: 410, textAlign: 'left' }}>
-        Disclaimer: RWKV-x070-World-0.1B excels in general knowledge, creative
+        Disclaimer: RWKV-x070-World excels in general knowledge, creative
         writing, basic multilingual tasks, and simple coding. However, it may
         face challenges with arithmetic, editing, and complex reasoning.
       </Text>
@@ -1004,14 +1005,27 @@ const Info = () => {
         </Dragger>
       )}
       {!loaded && (
-        <Button
-          type='primary'
-          size='large'
-          onClick={onClickLoadModel}
-          loading={loading}
-        >
-          {loading ? 'Loading...' : 'Load Model'}
-        </Button>
+        <Flex gap={4}>
+          {!loading && (
+            <Select
+              size='large'
+              defaultValue={modelLoadId}
+              onChange={setModelLoadId}
+              options={modelLoadLocal.map((x, id) => ({
+                value: id,
+                label: x.name,
+              }))}
+            />
+          )}
+          <Button
+            type='primary'
+            size='large'
+            onClick={onClickLoadModel}
+            loading={loading}
+          >
+            {loading ? 'Loading...' : 'Load Model'}
+          </Button>
+        </Flex>
       )}
     </div>
   )

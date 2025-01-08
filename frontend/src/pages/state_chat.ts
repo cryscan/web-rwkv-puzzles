@@ -30,23 +30,81 @@ const loadedProgress = atom({
   default: 0,
 })
 
-const modelUrl = atom({
-  key: 'modelUrl',
-  default: './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+const modelLoadLocal = atom({
+  key: 'modelLoadLocal',
+  default: [
+    {
+      name: '0.1B',
+      url: './assets/models/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+      key: undefined,
+      sampler: {
+        temperature: 2.0,
+        top_p: 0.5,
+        presence_penalty: 0.5,
+        count_penalty: 0.5,
+        half_life: 200,
+      },
+    },
+    {
+      name: '0.4B',
+      url: './assets/models/0.4B-20250107-ctx4096.st',
+      key: undefined,
+      sampler: {
+        temperature: 1.0,
+        top_p: 0.5,
+        presence_penalty: 0.5,
+        count_penalty: 0.5,
+        half_life: 200,
+      },
+    },
+  ],
 })
 
-const remoteUrl = atom({
-  key: 'remoteUrl',
-  default:
-    'https://api-image.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
-  // 'https://huggingface.co/cgisky/RWKV-x070-Ai00/resolve/main/world_v2.8/0.1B/0.1B-20241210-ctx4096.st',
+const modelLoadRemote = atom({
+  key: 'modelLoadRemote',
+  default: [
+    {
+      name: '0.1B',
+      url: 'https://api-image.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+      key: '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
+
+      sampler: {
+        temperature: 2.0,
+        top_p: 0.5,
+        presence_penalty: 0.5,
+        count_penalty: 0.5,
+        half_life: 200,
+      },
+    },
+    {
+      name: '0.4B',
+      url: 'https://api-image.rwkvos.com/download/0.4B-20250107-ctx4096.st',
+      key: undefined,
+      sampler: {
+        temperature: 1.0,
+        top_p: 0.5,
+        presence_penalty: 0.5,
+        count_penalty: 0.5,
+        half_life: 200,
+      },
+    },
+  ],
 })
 
-const remoteKey = atom({
-  key: 'remoteKey',
-  default:
-    '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
-  // undefined,
+const modelLoadId = atom({
+  key: 'modelLoadId',
+  default: 0,
+})
+
+const samplerOptions = atom({
+  key: 'samplerOptions',
+  default: {
+    temperature: 1.0,
+    top_p: 0.5,
+    presence_penalty: 0.5,
+    count_penalty: 0.5,
+    half_life: 200,
+  },
 })
 
 const heartBeatSet = atom({
@@ -207,9 +265,10 @@ export const P = {
   modelSize,
   loadedSize,
   loadedProgress,
-  modelUrl,
-  remoteUrl,
-  remoteKey,
+  modelLoadLocal,
+  modelLoadRemote,
+  modelLoadId,
+  samplerOptions,
   heartBeatSet,
   intro,
   editingIndex,
