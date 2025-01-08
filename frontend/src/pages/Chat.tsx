@@ -98,7 +98,6 @@ const Chat = () => {
   const [stateVisual, setStateVisual] = useState<null | StateVisual>(null)
 
   const [samplerOptions, setSamplerOptions] = useRecoilState(P.samplerOptions)
-
   const samplerOptionsRef = useRef(samplerOptions)
 
   const updateSamplerOptions = (updated: SamplerOptions) => {
