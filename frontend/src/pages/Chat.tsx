@@ -961,7 +961,7 @@ const Info = () => {
         Alternatively, download converted safetensors model from{' '}
         <a
           style={{ fontWeight: 700 }}
-          href='https://huggingface.co/cgisky/RWKV-x070-Ai00/resolve/main/world_v2.8/0.1B/0.1B-20241210-ctx4096.st'
+          href='https://huggingface.co/cgisky/RWKV-x070-Ai00'
         >
           HuggingFace
         </a>{' '}
