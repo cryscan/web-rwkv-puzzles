@@ -12,26 +12,28 @@ import {
   SidebarMenuItem,
 } from "./SidebarProvider"
 
+const basename = process.env.PUBLIC_URL || ''
+
 // Menu items.
 const items = [
   {
     title: "Chat",
-    url: "/#/chat",
+    url: `${basename}/#/chat`,
     icon: MessageSquare,
   },
   {
     title: "15 Puzzle",
-    url: "/#/15puzzle",
+    url: `${basename}/#/15puzzle`,
     icon: Puzzle,
   },
   {
     title: "Music",
-    url: "/#/music",
+    url: `${basename}/#/music`,
     icon: Music,
   },
   {
     title: "State Replay",
-    url: "/#/replay",
+    url: `${basename}/#/replay`,
     icon: Repeat1,
   },
 ]

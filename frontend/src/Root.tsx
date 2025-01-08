@@ -11,6 +11,9 @@ import Chat from './pages/Chat'
 import Music from './pages/Music'
 import Replay from './pages/Replay'
 const Root: React.FC = () => {
+
+  const basename = process.env.PUBLIC_URL || ''
+
   return (
     <SidebarProvider>
       <div className='flex w-full h-full'>
@@ -20,7 +23,8 @@ const Root: React.FC = () => {
             <SidebarTrigger />
           </div>
           <div className='flex-1 h-full'>
-            <HashRouter>
+          
+            <HashRouter basename={basename}>
               <Routes>
                 <Route path='/' element={<Navigate to='/chat' />} />
                 <Route path='/chat' element={<Chat />} />
