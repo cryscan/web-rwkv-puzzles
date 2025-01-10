@@ -379,7 +379,7 @@ const Chat = () => {
             </Flex>
           </Flex>
         ) : (
-          <Flex vertical>
+          <Flex vertical style={{ whiteSpace: 'pre-wrap' }}>
             <Markdown>{message.message.trim()}</Markdown>
             {!renderingBot && (
               <Row justify='end'>
