@@ -146,6 +146,8 @@ if ('function' === typeof importScripts) {
     let history = Array.from(tokens.slice(0, cutoff))
     tokens = tokens.slice(cutoff)
 
+    _abort = false
+
     for (var i = 0; i < max_len; ++i) {
       if (tokens.length > 0) {
         await session.run(tokens, output)
@@ -173,6 +175,11 @@ if ('function' === typeof importScripts) {
       if (stop_tokens.includes(token)) {
         break
       }
+
+      if (_abort) {
+        _abort = false
+        break
+      }
     }
 
     if (history.length > 0) {
@@ -184,6 +191,7 @@ if ('function' === typeof importScripts) {
 
   var _session: undefined | Promise<wasm_bindgen.Session> = undefined
   var _tokenizers: Map<string, wasm_bindgen.Tokenizer> = new Map()
+  var _abort: boolean = false
 
   async function run(message: string, window: Window) {
     if ((await _session) === undefined) {
@@ -316,6 +324,8 @@ if ('function' === typeof importScripts) {
 
     const session = await _session!
     session.clear_cache()
+
+    _abort = true
   }
 
   async function load(data: Uint8Array[], window: Window) {

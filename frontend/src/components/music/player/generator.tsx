@@ -8,22 +8,22 @@ import { prompts } from '../../music/assets/example-prompts'
 const { TextArea } = Input
 
 interface Prompt {
-  name: string;
-  prompt: string;
+  name: string
+  prompt: string
 }
 
 const EXAMPLE_PROMPTS: Prompt[] = prompts.map((prompt) => ({
   name: prompt.name,
-  prompt: prompt.prompt
+  prompt: prompt.prompt,
 }))
 
 interface GeneratorProps {
-  prompt: string;
-  setPrompt: (prompt: string) => void;
+  prompt: string
+  setPrompt: (prompt: string) => void
 }
 
 export default function Generator({ prompt, setPrompt }: GeneratorProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false)
   const worker = useRecoilValue(M.worker)
   const loaded = useRecoilValue(M.loaded)
 
@@ -38,7 +38,7 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
       if (worker) {
         await generateMusic(worker, prompt)
       } else {
-        throw new Error('Worker is not available');
+        throw new Error('Worker is not available')
       }
     } finally {
       console.log('Music generation completed')
@@ -47,6 +47,8 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
   }
 
   useEffect(() => {
+    worker?.postMessage(JSON.stringify({ task: 'abort' }))
+
     setPrompt(EXAMPLE_PROMPTS[0].prompt)
 
     return () => {
@@ -62,27 +64,27 @@ export default function Generator({ prompt, setPrompt }: GeneratorProps) {
       <Select
         defaultValue={EXAMPLE_PROMPTS[0].name}
         onChange={(value: string) => {
-          const selectedPrompt = EXAMPLE_PROMPTS.find(p => p.name === value);
+          const selectedPrompt = EXAMPLE_PROMPTS.find((p) => p.name === value)
           if (selectedPrompt) {
-            setPrompt(selectedPrompt.prompt);
+            setPrompt(selectedPrompt.prompt)
           }
         }}
         options={EXAMPLE_PROMPTS.map((prompt: Prompt) => ({
           value: prompt.name,
-          label: prompt.name
+          label: prompt.name,
         }))}
       />
 
-        <TextArea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter ABC notation..."
-          rows={4}
-          className='h-full'
-        />
+      <TextArea
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder='Enter ABC notation...'
+        rows={4}
+        className='h-full'
+      />
       <div className='w-full  mt-auto'>
         <Button
-          type="primary"
+          type='primary'
           onClick={onClickGenerate}
           disabled={!loaded || !prompt || isGenerating}
           loading={isGenerating}
