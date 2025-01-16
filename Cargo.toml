@@ -19,7 +19,7 @@ wasm-opt = false
 [dependencies]
 anyhow = "1"
 base64 = "0.22.1"
-bitflags = "2.7"
+bitflags = "2.8"
 bytemuck = { version = "1.17", features = ["extern_crate_alloc"] }
 derive-getters = "0.5"
 fastrand = { version = "2.1", features = ['js'] }
@@ -45,7 +45,7 @@ web-sys = { version = "0.3", features = ["Blob", "console"] }
 default-features = false
 features = ["web"]
 # path = "../web-rwkv"
-version = "0.10.6"
+version = "0.10.7"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

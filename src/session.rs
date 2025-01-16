@@ -61,7 +61,7 @@ impl Session {
         quant_nf4: usize,
         ty: SessionType,
     ) -> Result<Self> {
-        let instance = Instance::new(Default::default());
+        let instance = Instance::new(&Default::default());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
             .await
