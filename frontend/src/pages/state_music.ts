@@ -51,7 +51,7 @@ const modelUrl = atom({
 const remoteUrl = atom({
   key: 'music_remoteUrl',
   default:
-    'https://api-image.rwkvos.com/download/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
+    'https://api-model.rwkvos.com/download/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
   // 'https://huggingface.co/cryscan/rwkv-puzzles/resolve/main/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
 })
 
