@@ -2,6 +2,7 @@ use std::cell::RefCell;
 
 use anyhow::Result;
 use half::f16;
+use serde::{de::DeserializeSeed, Deserialize};
 use wasm_bindgen::prelude::*;
 use web_rwkv::{
     context::{Context, ContextBuilder, InstanceExt},
@@ -13,7 +14,7 @@ use web_rwkv::{
         softmax::softmax_one,
         v4, v5, v6, v7, Runtime, SimpleRuntime,
     },
-    tensor::{ops::TensorOp, TensorCpu},
+    tensor::{ops::TensorOp, serialization::Seed, TensorCpu},
     wgpu::{Instance, PowerPreference},
 };
 
@@ -45,6 +46,11 @@ fn make_puzzle_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
     Ok(hooks)
 }
 
+#[derive(Debug, Deserialize)]
+struct Prefab {
+    info: ModelInfo,
+}
+
 pub struct Session {
     context: Context,
     info: ModelInfo,
@@ -59,6 +65,7 @@ impl Session {
         model: R,
         quant: usize,
         quant_nf4: usize,
+        quant_sf4: usize,
         ty: SessionType,
     ) -> Result<Self> {
         let instance = Instance::new(&Default::default());
@@ -76,6 +83,7 @@ impl Session {
         let quant = (0..quant)
             .map(|layer| (layer, Quant::Int8))
             .chain((0..quant_nf4).map(|layer| (layer, Quant::NF4)))
+            .chain((0..quant_sf4).map(|layer| (layer, Quant::SF4)))
             .collect();
         let builder = ModelBuilder::new(&context, model).quant(quant);
         let rescale_layer = match ty {
@@ -116,6 +124,81 @@ impl Session {
                 ModelVersion::V7 => {
                     // no rescale needed for v7 models
                     let model = builder.build_v7().await?;
+                    let bundle = v7::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+            },
+        };
+
+        let cache = RefCell::new(Default::default());
+
+        Ok(Self {
+            context,
+            info,
+            runtime,
+            state,
+            cache,
+            ty,
+        })
+    }
+
+    pub async fn from_prefab(data: &[u8], ty: SessionType) -> Result<Self> {
+        let instance = Instance::new(&Default::default());
+        let adapter = instance
+            .adapter(PowerPreference::HighPerformance)
+            .await
+            .expect("failed to request adapter");
+
+        let Prefab { info } = cbor4ii::serde::from_slice::<Prefab>(&data)?;
+
+        let context = ContextBuilder::new(adapter)
+            .auto_limits(&info)
+            .build()
+            .await?;
+
+        let reader = cbor4ii::core::utils::SliceReader::new(&data);
+        let mut deserializer = cbor4ii::serde::Deserializer::new(reader);
+
+        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
+            SessionType::Puzzle => {
+                let hooks = make_puzzle_hooks(&info)?;
+                let seed: Seed<_, v6::Model> = Seed::new(&context);
+                let model = seed.deserialize(&mut deserializer)?;
+                let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            SessionType::Chat | SessionType::Music => match info.version {
+                ModelVersion::V4 => {
+                    let seed: Seed<_, v4::Model> = Seed::new(&context);
+                    let model = seed.deserialize(&mut deserializer)?;
+                    let bundle = v4::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V5 => {
+                    let seed: Seed<_, v5::Model> = Seed::new(&context);
+                    let model = seed.deserialize(&mut deserializer)?;
+                    let bundle = v5::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V6 => {
+                    let seed: Seed<_, v6::Model> = Seed::new(&context);
+                    let model = seed.deserialize(&mut deserializer)?;
+                    let bundle = v6::Bundle::<f16>::new(model, 1);
+                    let state = bundle.state();
+                    let runtime = SimpleRuntime::new(bundle);
+                    (Box::new(runtime), Box::new(state))
+                }
+                ModelVersion::V7 => {
+                    let seed: Seed<_, v7::Model> = Seed::new(&context);
+                    let model = seed.deserialize(&mut deserializer)?;
                     let bundle = v7::Bundle::<f16>::new(model, 1);
                     let state = bundle.state();
                     let runtime = SimpleRuntime::new(bundle);
@@ -187,11 +270,17 @@ impl SessionExport {
         model: TensorReader,
         quant: usize,
         quant_nf4: usize,
+        quant_sf4: usize,
         ty: SessionType,
     ) -> Result<Self, JsError> {
-        let session = Session::new(model, quant, quant_nf4, ty)
+        let session = Session::new(model, quant, quant_nf4, quant_sf4, ty)
             .await
             .map_err(err)?;
+        Ok(Self(session))
+    }
+
+    pub async fn from_prefab(data: &[u8], ty: SessionType) -> Result<Self, JsError> {
+        let session = Session::from_prefab(data, ty).await.map_err(err)?;
         Ok(Self(session))
     }
 

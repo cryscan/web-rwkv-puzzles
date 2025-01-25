@@ -21,7 +21,7 @@ anyhow = "1"
 base64 = "0.22.1"
 bitflags = "2.8"
 bytemuck = { version = "1.17", features = ["extern_crate_alloc"] }
-cbor4ii = "1.0.0"
+cbor4ii = { version = "1.0.0", features = ["serde1"] }
 derive-getters = "0.5"
 fastrand = { version = "2.1", features = ['js'] }
 flume = "0.11"

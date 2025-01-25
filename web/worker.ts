@@ -120,9 +120,16 @@ if ('function' === typeof importScripts) {
     // var bin = await req.arrayBuffer();
     // console.log("model: ", bin.byteLength);
 
-    const reader = await initReader(blob)
-    // @HaloWang: 修改这里的参数
-    const session = await new Session(reader, 0, 0, config.session_type)
+    let session
+    try {
+      const reader = await initReader(blob)
+      session = await new Session(reader, 0, 0, 0, config.session_type)
+    } catch (e) {
+      console.log('📌 Load as prefab')
+      const buffer = new Uint8Array(await blob.arrayBuffer())
+      session = await Session.from_prefab(buffer, config.session_type)
+    }
+
     console.log('✅ Runtime loaded')
     return session
   }
