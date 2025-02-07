@@ -164,6 +164,7 @@ if ('function' === typeof importScripts) {
 
       switch (session.session_type()) {
         case SessionType.Puzzle:
+        case SessionType.Othello:
           probs = output
           break
         case SessionType.Chat:
@@ -241,6 +242,7 @@ if ('function' === typeof importScripts) {
         )
         break
       case SessionType.Puzzle:
+      case SessionType.Othello:
         sampler = new SimpleSampler(info)
         break
     }
@@ -365,6 +367,7 @@ if ('function' === typeof importScripts) {
         const options = JSON.parse(e.data)
         const task = options.task
         switch (task) {
+          case 'othello':
           case 'puzzle':
           case 'chat':
           case 'music':
@@ -373,6 +376,9 @@ if ('function' === typeof importScripts) {
 
           case 'set_session_type':
             switch (options.type) {
+              case 'othello':
+                config.session_type = SessionType.Othello
+                break
               case 'puzzle':
                 config.session_type = SessionType.Puzzle
                 break

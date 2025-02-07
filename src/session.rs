@@ -28,10 +28,11 @@ pub enum SessionType {
     Puzzle,
     Chat,
     Music,
+    Othello,
 }
 
 /// We need to slightly modify the model structure using hooks.
-fn make_puzzle_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
+fn make_puzzle_hooks_v6<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
     let mut hooks = v6::HookMap::new();
     for layer in 0..info.num_layer {
         // add a custom operation before time-mix for each layer
@@ -43,6 +44,29 @@ fn make_puzzle_hooks<F: Float>(info: &ModelInfo) -> Result<v6::HookMap<F>> {
             }),
         );
     }
+    Ok(hooks)
+}
+
+fn make_puzzle_hooks_v7<F: Float>(info: &ModelInfo) -> Result<v7::HookMap<F>> {
+    let mut hooks = v7::HookMap::new();
+
+    for layer in 0..info.num_layer {
+        hooks.insert(
+            v7::Hook::PostAttAdapt(layer),
+            Box::new(move |frame: v7::Frame<F>| {
+                let op = TensorOp::affine(&frame.buffer.att_a, 2.0, 0.0)?;
+                Ok(TensorOp::List(vec![op]))
+            }),
+        );
+        hooks.insert(
+            v7::Hook::PostAttControl(layer),
+            Box::new(move |frame: v7::Frame<F>| {
+                let op = TensorOp::mul_w(&frame.buffer.att_w, &frame.buffer.att_a)?;
+                Ok(TensorOp::List(vec![op]))
+            }),
+        );
+    }
+
     Ok(hooks)
 }
 
@@ -88,13 +112,21 @@ impl Session {
         let builder = ModelBuilder::new(&context, model).quant(quant);
         let rescale_layer = match ty {
             SessionType::Chat => 6,
-            SessionType::Puzzle | SessionType::Music => 999, // = no rescale
+            SessionType::Puzzle | SessionType::Othello | SessionType::Music => 999, // = no rescale
         };
         let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
-                let hooks = make_puzzle_hooks(&info)?;
+                let hooks = make_puzzle_hooks_v6(&info)?;
                 let model = builder.rescale(rescale_layer).build_v6().await?;
                 let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            SessionType::Othello => {
+                let hooks = make_puzzle_hooks_v7(&info)?;
+                let model = builder.rescale(rescale_layer).build_v7().await?;
+                let bundle = v7::Bundle::<f16>::new_with_hooks(model, 1, hooks);
                 let state = bundle.state();
                 let runtime = SimpleRuntime::new(bundle);
                 (Box::new(runtime), Box::new(state))
@@ -163,10 +195,19 @@ impl Session {
 
         let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
-                let hooks = make_puzzle_hooks(&info)?;
                 let seed: Seed<_, v6::Model> = Seed::new(&context);
+                let hooks = make_puzzle_hooks_v6(&info)?;
                 let model = seed.deserialize(&mut deserializer)?;
                 let bundle = v6::Bundle::<f16>::new_with_hooks(model, 1, hooks);
+                let state = bundle.state();
+                let runtime = SimpleRuntime::new(bundle);
+                (Box::new(runtime), Box::new(state))
+            }
+            SessionType::Othello => {
+                let seed: Seed<_, v7::Model> = Seed::new(&context);
+                let hooks = make_puzzle_hooks_v7(&info)?;
+                let model = seed.deserialize(&mut deserializer)?;
+                let bundle = v7::Bundle::<f16>::new_with_hooks(model, 1, hooks);
                 let state = bundle.state();
                 let runtime = SimpleRuntime::new(bundle);
                 (Box::new(runtime), Box::new(state))
