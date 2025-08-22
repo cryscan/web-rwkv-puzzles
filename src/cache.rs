@@ -3,7 +3,7 @@ use web_rwkv::tensor::TensorCpu;
 
 #[repr(transparent)]
 #[derive(Debug, Default, Clone)]
-struct Tokens(Vec<u16>);
+struct Tokens(Vec<u32>);
 
 impl std::ops::Deref for Tokens {
     type Target = TokenSlice;
@@ -19,8 +19,8 @@ impl std::borrow::Borrow<[u8]> for Tokens {
     }
 }
 
-impl std::borrow::Borrow<[u16]> for Tokens {
-    fn borrow(&self) -> &[u16] {
+impl std::borrow::Borrow<[u32]> for Tokens {
+    fn borrow(&self) -> &[u32] {
         &self.0
     }
 }
@@ -39,15 +39,15 @@ impl qp_trie::Break for Tokens {
     }
 
     fn find_break(&self, loc: usize) -> &Self::Split {
-        self.0[..loc >> 1].as_token_slice()
+        self.0[..loc >> 2].as_token_slice()
     }
 }
 
 #[repr(transparent)]
-struct TokenSlice([u16]);
+struct TokenSlice([u32]);
 
 impl std::ops::Deref for TokenSlice {
-    type Target = [u16];
+    type Target = [u32];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -62,7 +62,7 @@ impl std::borrow::Borrow<[u8]> for TokenSlice {
 
 impl Default for &TokenSlice {
     fn default() -> Self {
-        <&[u16]>::default().as_token_slice()
+        <&[u32]>::default().as_token_slice()
     }
 }
 
@@ -70,9 +70,9 @@ trait AsTokenSlice {
     fn as_token_slice(&self) -> &TokenSlice;
 }
 
-impl AsTokenSlice for [u16] {
+impl AsTokenSlice for [u32] {
     fn as_token_slice(&self) -> &TokenSlice {
-        let ptr = self as *const [u16] as *const TokenSlice;
+        let ptr = self as *const [u32] as *const TokenSlice;
         unsafe { &*ptr }
     }
 }
@@ -88,13 +88,13 @@ pub struct CachedItem {
 
 #[derive(Debug, Clone)]
 pub struct CacheCheckout<'a> {
-    pub prefix: &'a [u16],
-    pub suffix: &'a [u16],
+    pub prefix: &'a [u32],
+    pub suffix: &'a [u32],
     pub item: Option<CachedItem>,
 }
 
 impl Cache {
-    pub fn checkout<'a, 'b>(&'a self, tokens: &'b [u16]) -> CacheCheckout<'b> {
+    pub fn checkout<'a, 'b>(&'a self, tokens: &'b [u32]) -> CacheCheckout<'b> {
         let cache = &self.0;
 
         let prefix = cache.longest_common_prefix(tokens.as_token_slice());
@@ -118,7 +118,7 @@ impl Cache {
         }
     }
 
-    pub fn insert(&mut self, tokens: &[u16], state: TensorCpu<f32>, output: TensorCpu<f32>) {
+    pub fn insert(&mut self, tokens: &[u32], state: TensorCpu<f32>, output: TensorCpu<f32>) {
         let tokens = Tokens(tokens.to_vec());
         self.0.insert(tokens, CachedItem { state, output });
     }

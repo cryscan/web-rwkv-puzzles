@@ -19,11 +19,11 @@ wasm-opt = false
 [dependencies]
 anyhow = "1"
 base64 = "0.22.1"
-bitflags = "2.8"
-bytemuck = { version = "1.17", features = ["extern_crate_alloc"] }
+bitflags = "2.9"
+bytemuck = { version = "1.23", features = ["extern_crate_alloc"] }
 cbor4ii = { version = "1.0.0", features = ["serde1"] }
 derive-getters = "0.5"
-fastrand = { version = "2.1", features = ['js'] }
+fastrand = { version = "2.3", features = ['js'] }
 flume = "0.11"
 futures = "0.3.31"
 half = { version = "2.4", features = ["bytemuck"] }
@@ -34,7 +34,7 @@ lazy_static = "1.5"
 log = "0.4"
 qp-trie = "0.8"
 regex = "1.10"
-safetensors = "0.5"
+safetensors = "0.6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uid = "0.1"
@@ -46,7 +46,7 @@ web-sys = { version = "0.3", features = ["Blob", "console"] }
 default-features = false
 features = ["web"]
 # path = "../web-rwkv"
-version = "0.10.12"
+version = "0.10.15"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

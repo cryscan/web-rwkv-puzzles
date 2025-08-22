@@ -59,7 +59,7 @@ impl Reader for TensorReader {
         Ok(tensor.shape.clone())
     }
 
-    fn tensor(&self, name: &str) -> Result<ReaderTensor, SafeTensorError> {
+    fn tensor(&'_ self, name: &str) -> Result<ReaderTensor<'_>, SafeTensorError> {
         let tensor = self
             .tensors
             .get(name)

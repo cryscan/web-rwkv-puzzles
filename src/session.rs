@@ -8,7 +8,7 @@ use web_rwkv::{
     context::{Context, ContextBuilder, InstanceExt},
     num::Float,
     runtime::{
-        infer::{InferInput, InferInputBatch, InferOption},
+        infer::{Rnn, RnnInput, RnnInputBatch, RnnOption},
         loader::{Loader, Reader},
         model::{Bundle, ContextAutoLimits, ModelBuilder, ModelInfo, ModelVersion, Quant, State},
         softmax::softmax_one,
@@ -78,7 +78,7 @@ struct Prefab {
 pub struct Session {
     context: Context,
     info: ModelInfo,
-    runtime: Box<dyn Runtime>,
+    runtime: Box<dyn Runtime<Rnn>>,
     state: Box<dyn State>,
     cache: RefCell<Cache>,
     ty: SessionType,
@@ -114,7 +114,7 @@ impl Session {
             SessionType::Chat => 6,
             SessionType::Puzzle | SessionType::Othello | SessionType::Music => 999, // = no rescale
         };
-        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
+        let (runtime, state): (Box<dyn Runtime<_>>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
                 let hooks = make_puzzle_hooks_v6(&info)?;
                 let model = builder.rescale(rescale_layer).build_v6().await?;
@@ -193,7 +193,7 @@ impl Session {
         let reader = cbor4ii::core::utils::SliceReader::new(&data);
         let mut deserializer = cbor4ii::serde::Deserializer::new(reader);
 
-        let (runtime, state): (Box<dyn Runtime>, Box<dyn State>) = match ty {
+        let (runtime, state): (Box<dyn Runtime<_>>, Box<dyn State>) = match ty {
             SessionType::Puzzle => {
                 let seed: Seed<_, v6::Model> = Seed::new(&context);
                 let hooks = make_puzzle_hooks_v6(&info)?;
@@ -268,13 +268,9 @@ impl Session {
         Ok(self.state.load(backed, 0)?)
     }
 
-    pub async fn run(&self, tokens: &[u16]) -> Result<TensorCpu<f32>> {
-        let tokens = tokens.to_owned();
-        let mut inference = Some(InferInput::new(
-            vec![InferInputBatch {
-                tokens,
-                option: InferOption::Last,
-            }],
+    pub async fn run(&self, tokens: &[u32]) -> Result<TensorCpu<f32>> {
+        let mut inference = Some(RnnInput::new(
+            vec![RnnInputBatch::new(tokens.to_vec(), RnnOption::Last)],
             TOKEN_CHUNK_SIZE,
         ));
 
@@ -325,7 +321,7 @@ impl SessionExport {
         Ok(Self(session))
     }
 
-    pub async fn run(&self, tokens: &[u16], output: &mut [f32]) -> Result<(), JsError> {
+    pub async fn run(&self, tokens: &[u32], output: &mut [f32]) -> Result<(), JsError> {
         let data = self.0.run(tokens).await.map_err(err)?;
         output.copy_from_slice(&data.data()[..output.len()]);
         Ok(())
@@ -370,7 +366,7 @@ impl SessionExport {
 
     pub fn checkout(
         &self,
-        tokens: &[u16],
+        tokens: &[u32],
         state: &mut [f32],
         output: &mut [f32],
     ) -> Result<usize, JsError> {
@@ -402,7 +398,7 @@ impl SessionExport {
         Ok(cutoff)
     }
 
-    pub fn cache(&self, tokens: &[u16], state: &[f32], output: &[f32]) -> Result<(), JsError> {
+    pub fn cache(&self, tokens: &[u32], state: &[f32], output: &[f32]) -> Result<(), JsError> {
         let mut cache = self.0.cache.borrow_mut();
 
         let shape = self.0.state.init_shape();

@@ -18,11 +18,11 @@ impl SimpleSampler {
         Self { info }
     }
 
-    pub fn update(&mut self, _tokens: &[u16]) {}
+    pub fn update(&mut self, _tokens: &[u32]) {}
 
     pub fn transform(&self, _logits: &mut [f32]) {}
 
-    pub fn sample(&self, probs: &[f32]) -> u16 {
+    pub fn sample(&self, probs: &[f32]) -> u32 {
         let token = probs
             .iter()
             .take(self.info.num_vocab)
@@ -31,7 +31,7 @@ impl SimpleSampler {
             .max_by(|(_, x), (_, y)| x.total_cmp(y))
             .map(|(id, _)| id)
             .unwrap_or_default();
-        token as u16
+        token as u32
     }
 }
 
@@ -45,7 +45,7 @@ pub struct NucleusSampler {
     pub penalty_decay: f32,
 
     info: ModelInfo,
-    state: HashMap<u16, f32>,
+    state: HashMap<u32, f32>,
 }
 
 #[wasm_bindgen]
@@ -70,7 +70,7 @@ impl NucleusSampler {
         }
     }
 
-    pub fn update(&mut self, tokens: &[u16]) {
+    pub fn update(&mut self, tokens: &[u32]) {
         for token in tokens {
             match self.state.get_mut(token) {
                 Some(count) => *count += 1.0,
@@ -90,7 +90,7 @@ impl NucleusSampler {
         }
     }
 
-    pub fn sample(&self, probs: &[f32]) -> u16 {
+    pub fn sample(&self, probs: &[f32]) -> u32 {
         let sorted: Vec<_> = probs
             .iter()
             .take(self.info.num_vocab)
@@ -124,6 +124,6 @@ impl NucleusSampler {
             .find_or_first(|&(_, cum)| rand <= cum)
             .map(|(id, _)| id)
             .unwrap_or_default();
-        token as u16
+        token as u32
     }
 }

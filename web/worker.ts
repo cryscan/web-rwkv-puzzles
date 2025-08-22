@@ -136,7 +136,7 @@ if ('function' === typeof importScripts) {
 
   async function* pipeline(
     session: wasm_bindgen.Session,
-    tokens: Uint16Array,
+    tokens: Uint32Array,
     sampler: wasm_bindgen.SimpleSampler | wasm_bindgen.NucleusSampler,
     stop_tokens: number[],
     max_len: number,
@@ -175,7 +175,7 @@ if ('function' === typeof importScripts) {
       }
 
       const token = sampler.sample(probs)
-      tokens = new Uint16Array([token])
+      tokens = new Uint32Array([token])
       sampler.update(tokens)
 
       yield token, output
@@ -192,7 +192,7 @@ if ('function' === typeof importScripts) {
 
     if (history.length > 0) {
       await session.back(state)
-      session.cache(new Uint16Array(history), state, output)
+      session.cache(new Uint32Array(history), state, output)
       console.log(`📌 State cache check-in: ${history.length}`)
     }
   }
@@ -254,7 +254,7 @@ if ('function' === typeof importScripts) {
       const p = pipeline(session, tokens, sampler, stop_tokens, max_len)
 
       for await (const token of p) {
-        const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
+        const word = decoder.decode(tokenizer.decode(new Uint32Array([token])))
         window.postMessage({ type: 'token', word, token })
       }
     })
@@ -299,8 +299,8 @@ if ('function' === typeof importScripts) {
     await window.navigator.locks.request('model', async (lock) => {
       const logits = new Float32Array(info.num_vocab)
       for (const [index, token] of tokens.entries()) {
-        const word = decoder.decode(tokenizer.decode(new Uint16Array([token])))
-        await session.run(new Uint16Array([token]), logits)
+        const word = decoder.decode(tokenizer.decode(new Uint32Array([token])))
+        await session.run(new Uint32Array([token]), logits)
         await session.back(state)
         const visual = JSON.parse(new StateVisual(info, state).json())
         window.postMessage({
