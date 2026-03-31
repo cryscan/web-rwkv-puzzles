@@ -65,7 +65,7 @@ const modelLoadRemote = atom({
   default: [
     {
       name: '0.1B',
-      url: 'https://api-model.rwkvos.com/download/RWKV-x070-World-0.1B-v2.8-20241210-ctx4096.st',
+      url: 'https://api-model.rwkvos.com/download/rwkv7-g1a-0.1b-20250728-ctx4096.st',
       key: '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
       sampler: {
         temperature: 2.0,
@@ -77,7 +77,7 @@ const modelLoadRemote = atom({
     },
     {
       name: '0.4B',
-      url: 'https://api-model.rwkvos.com/download/0.4B-20250107-ctx4096.st',
+      url: 'https://api-model.rwkvos.com/download/rwkv7-g1a-0.4b-20250905-ctx4096.st',
       key: '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
       sampler: {
         temperature: 1.0,
