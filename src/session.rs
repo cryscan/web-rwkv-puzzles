@@ -15,7 +15,7 @@ use web_rwkv::{
         v4, v5, v6, v7, Runtime, SimpleRuntime,
     },
     tensor::{ops::TensorOp, serialization::Seed, TensorCpu},
-    wgpu::{Instance, PowerPreference},
+    wgpu::{Instance, InstanceDescriptor, PowerPreference},
 };
 
 use crate::{cache::Cache, loader::TensorReader, ops::TensorOpExt};
@@ -92,7 +92,7 @@ impl Session {
         quant_sf4: usize,
         ty: SessionType,
     ) -> Result<Self> {
-        let instance = Instance::new(&Default::default());
+        let instance = Instance::new(InstanceDescriptor::new_without_display_handle());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
             .await
@@ -177,7 +177,7 @@ impl Session {
     }
 
     pub async fn from_prefab(data: &[u8], ty: SessionType) -> Result<Self> {
-        let instance = Instance::new(&Default::default());
+        let instance = Instance::new(InstanceDescriptor::new_without_display_handle());
         let adapter = instance
             .adapter(PowerPreference::HighPerformance)
             .await
