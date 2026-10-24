@@ -39,7 +39,9 @@ jobs:
           node-version: '>=20.0'
       - name: Install Tools
         run: |
-          npm install --global pnpm
+          # Pin pnpm so that CI matches the local toolchain: newer pnpm versions
+          # treat ignored dependency build scripts as a fatal error.
+          npm install --global pnpm@9.15.3
           npm install --global typescript
       - name: Install Dependencies
         run: pnpm install
