@@ -13,8 +13,10 @@ export const loadData = async (
   onContentLength?: (contentLength: number) => void,
   onLoadedLength?: (loadedLength: number) => void,
 ): Promise<Uint8Array[]> => {
-  const cacheKey = `rwkv.models.${name}`
-  const cache = await caches.open(cacheKey)
+  const cacheName = `rwkv.models.${name}`
+  // Include the url so that different model files do not share one cache entry
+  const cacheKey = `${cacheName}.${url}`
+  const cache = await caches.open(cacheName)
 
   const cacheResponse = await cache.match(cacheKey)
   if (cacheResponse) console.log('✅ Model loaded from cache:\n', url)

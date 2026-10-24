@@ -45,21 +45,21 @@ const loadedProgress = atom({
 
 const modelUrl = atom({
   key: 'music_modelUrl',
-  default: './assets/models/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
+  default: './assets/models/RWKV-7-ABC-2024-11-22-15-50-00.st',
+  // './assets/models/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
 })
 
 const remoteUrl = atom({
   key: 'music_remoteUrl',
   default:
-    'https://api-model.rwkvos.com/download/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
-  // 'https://huggingface.co/cryscan/rwkv-puzzles/resolve/main/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
+    'https://www.modelscope.cn/models/cryscan/RWKV-7-ABC-2024-11-22-15-50-00/resolve/master/RWKV-7-ABC-2024-11-22-15-50-00.st',
+  // 'https://api-model.rwkvos.com/download/RWKV-6-ABC-85M-v1-20240217-ctx1024-webrwkv.st',
 })
 
 const remoteKey = atom({
   key: 'music_remoteKey',
-  default:
-    '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
-  // undefined,
+  default: undefined as string | undefined,
+  // '4s5aWqs2f4PzKfgLjuRZgXKvvmal5Z5iq0OzkTPwaA2axgNgSbayfQEX5FgOpTxyyeUM4gsFHHDZroaFDIE3NtSJD6evdz3lAVctyN026keeXMoJ7tmUy5zriMJHJ9aM',
 })
 
 export const M = {
